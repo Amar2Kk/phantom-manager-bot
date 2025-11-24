@@ -5,11 +5,16 @@ import { logger } from './utils/logger';
 // Import commands
 import { pingCommand } from './commands/ping';
 import { infoCommand } from './commands/info';
+import { leaderboardCommand } from './commands/leaderboard';
+import { statsCommand } from './commands/stats';
 
 async function deployCommands() {
-  const commands = [pingCommand, infoCommand].map(command => 
-    command.data.toJSON()
-  );
+  const commands = [
+    pingCommand, 
+    infoCommand, 
+    leaderboardCommand, 
+    statsCommand
+  ].map(command => command.data.toJSON());
 
   const rest = new REST().setToken(botConfig.token);
 

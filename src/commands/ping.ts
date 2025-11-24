@@ -7,12 +7,11 @@ export const pingCommand: Command = {
     .setDescription('Replies with Pong and bot latency'),
   
   execute: async (interaction) => {
-    const sent = await interaction.reply({ 
-      content: 'Pinging...', 
-      fetchReply: true 
-    });
+    const startTime = Date.now();
     
-    const latency = sent.createdTimestamp - interaction.createdTimestamp;
+    await interaction.reply({ content: 'Pinging...' });
+    
+    const latency = Date.now() - startTime;
     const apiLatency = Math.round(interaction.client.ws.ping);
     
     await interaction.editReply(

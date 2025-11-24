@@ -1,0 +1,112 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Guild (Discord Server) settings
+model Guild {
+  id        String   @id // Discord Guild ID
+  name      String
+  prefix    String   @default("!")
+  settings  Json? // Flexible settings storage
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users User[]
+
+  @@map("guilds")
+}
+
+// User data across all guilds
+model User {
+  id        String   @id // Discord User ID
+  username  String
+  globalXp  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  guilds        Guild[]
+  guildData     GuildUser[]
+  commandUsages CommandUsage[]
+
+  @@map("users")
+}
+
+// User data specific to each guild
+model GuildUser {
+  id        String   @id @default(cuid())
+  userId    String
+  guildId   String
+  xp        Int      @default(0)
+  level     Int      @default(0)
+  messages  Int      @default(0)
+  warnings  Int      @default(0)
+  settings  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, guildId])
+  @@index([guildId])
+  @@index([userId])
+  @@map("guild_users")
+}
+
+// Track command usage for analytics
+model CommandUsage {
+  id          String   @id @default(cuid())
+  commandName String
+  userId      String
+  guildId     String?
+  success     Boolean  @default(true)
+  error       String?
+  executedAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([commandName])
+  @@index([userId])
+  @@index([guildId])
+  @@index([executedAt])
+  @@map("command_usage")
+}
+
+// Store custom bot responses or messages
+model CustomResponse {
+  id        String   @id @default(cuid())
+  guildId   String
+  trigger   String
+  response  String
+  isRegex   Boolean  @default(false)
+  enabled   Boolean  @default(true)
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([guildId])
+  @@map("custom_responses")
+}
+
+// Store moderation logs
+model ModerationLog {
+  id        String   @id @default(cuid())
+  guildId   String
+  userId    String // User being moderated
+  moderator String // Moderator ID
+  action    String // ban, kick, warn, mute, etc.
+  reason    String?
+  duration  Int? // Duration in minutes for temporary actions
+  createdAt DateTime @default(now())
+
+  @@index([guildId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("moderation_logs")
+}

@@ -4,61 +4,97 @@ A Discord bot built with discord.js and TypeScript.
 
 ## Features
 
-- Built with TypeScript for type safety
-- Modular command structure
-- Event handling system
-- Easy to extend with new commands
-- Development mode with hot reload
+-   ✅ Built with TypeScript for type safety
+-   ✅ PostgreSQL database with Prisma ORM
+-   ✅ Modular command structure
+-   ✅ Event handling system
+-   ✅ User XP/leveling system
+-   ✅ Command usage analytics
+-   ✅ Guild-specific settings
+-   ✅ Easy to extend with new commands
+-   ✅ Development mode with hot reload
 
 ## Prerequisites
 
-- Node.js 18+ 
-- pnpm (or npm/yarn)
-- A Discord Bot Token ([Create one here](https://discord.com/developers/applications))
+-   Node.js 18+
+-   pnpm (or npm/yarn)
+-   Docker (for local database) or PostgreSQL (cloud/local)
+-   A Discord Bot Token ([Create one here](https://discord.com/developers/applications))
 
 ## Setup
 
 1. **Clone the repository** (if not already done)
 
 2. **Install dependencies:**
-   ```bash
-   pnpm install
-   ```
+
+    ```bash
+    pnpm install
+    ```
 
 3. **Create a `.env` file** in the root directory:
-   ```bash
-   cp .env.example .env
-   ```
+
+    ```bash
+    cp .env.example .env
+    ```
 
 4. **Configure your `.env` file:**
-   ```env
-   DISCORD_TOKEN=your_bot_token_here
-   CLIENT_ID=your_client_id_here
-   GUILD_ID=your_guild_id_here  # Optional: for faster command deployment during development
-   ```
 
-   To get these values:
-   - Go to [Discord Developer Portal](https://discord.com/developers/applications)
-   - Create a new application (or select existing)
-   - `DISCORD_TOKEN`: Bot → Token → Reset Token / Copy
-   - `CLIENT_ID`: General Information → Application ID
-   - `GUILD_ID`: Enable Developer Mode in Discord → Right-click your server → Copy ID
+    ```env
+    DISCORD_TOKEN=your_bot_token_here
+    CLIENT_ID=your_client_id_here
+    GUILD_ID=your_guild_id_here
+    DATABASE_URL=postgresql://user:password@localhost:5432/phantom_bot
+    NODE_ENV=development
+    ```
 
-5. **Deploy slash commands:**
-   ```bash
-   pnpm deploy
-   ```
+    To get these values:
 
-6. **Invite the bot to your server:**
-   
-   Use this URL (replace `YOUR_CLIENT_ID`):
-   ```
-   https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=8&scope=bot%20applications.commands
-   ```
+    - Go to [Discord Developer Portal](https://discord.com/developers/applications)
+    - Create a new application (or select existing)
+    - `DISCORD_TOKEN`: Bot → Token → Reset Token / Copy
+    - `CLIENT_ID`: General Information → Application ID
+    - `GUILD_ID`: Enable Developer Mode in Discord → Right-click your server → Copy ID
+    - `DATABASE_URL`: See [DATABASE.md](./DATABASE.md) for setup options
+
+5. **Set up the database:**
+
+    **Option A: Docker (Recommended)**
+
+    ```bash
+    # Start PostgreSQL in Docker
+    docker compose up -d
+
+    # Generate Prisma Client
+    pnpm db:generate
+
+    # Push schema to database
+    pnpm db:push
+    ```
+
+    **Option B: Cloud Database**
+
+    - See [DATABASE.md](./DATABASE.md) for Supabase, Neon, or Railway setup
+
+    📖 Full guide: [DATABASE.md](./DATABASE.md) | [DOCKER.md](./DOCKER.md)
+
+6. **Deploy slash commands:**
+
+    ```bash
+    pnpm deploy
+    ```
+
+7. **Invite the bot to your server:**
+
+    Use this URL (replace `YOUR_CLIENT_ID`):
+
+    ```
+    https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=8&scope=bot%20applications.commands
+    ```
 
 ## Development
 
 **Run in development mode** (with hot reload):
+
 ```bash
 pnpm dev
 ```
@@ -66,33 +102,48 @@ pnpm dev
 ## Production
 
 **Build the project:**
+
 ```bash
 pnpm build
 ```
 
 **Start the bot:**
+
 ```bash
 pnpm start
 ```
 
 ## Available Commands
 
-- `/ping` - Check bot latency
-- `/info` - Get bot information
+-   `/ping` - Check bot latency
+-   `/info` - Get bot information
+-   `/leaderboard` - View XP leaderboard for the server
+-   `/stats` - View bot usage statistics
 
 ## Project Structure
 
 ```
 phantom-manager-bot/
+├── prisma/
+│   ├── schema.prisma   # Database schema
+│   ├── seed.ts         # Database seeding script
+│   └── migrations/     # Migration files
 ├── src/
 │   ├── commands/       # Slash commands
 │   │   ├── ping.ts
-│   │   └── info.ts
+│   │   ├── info.ts
+│   │   ├── leaderboard.ts
+│   │   └── stats.ts
 │   ├── events/         # Event handlers
 │   │   ├── ready.ts
 │   │   └── interactionCreate.ts
+│   ├── services/       # Business logic
+│   │   ├── guild-service.ts
+│   │   ├── user-service.ts
+│   │   └── analytics-service.ts
 │   ├── utils/          # Utility functions
-│   │   └── logger.ts
+│   │   ├── logger.ts
+│   │   └── database.ts
 │   ├── bot.ts          # Bot initialization
 │   ├── config.ts       # Configuration
 │   ├── types.ts        # TypeScript types
@@ -100,6 +151,7 @@ phantom-manager-bot/
 │   └── deploy-commands.ts  # Command deployment script
 ├── .env                # Environment variables (create this)
 ├── .env.example        # Environment template
+├── DATABASE.md         # Database setup guide
 ├── tsconfig.json       # TypeScript configuration
 └── package.json        # Project dependencies
 ```
@@ -110,43 +162,54 @@ phantom-manager-bot/
 2. Implement the command following this structure:
 
 ```typescript
-import { SlashCommandBuilder } from 'discord.js';
-import { Command } from '../types';
+import { SlashCommandBuilder } from "discord.js";
+import { Command } from "../types";
 
 export const myCommand: Command = {
-  data: new SlashCommandBuilder()
-    .setName('mycommand')
-    .setDescription('Description of my command'),
-  
-  execute: async (interaction) => {
-    await interaction.reply('Hello from my command!');
-  },
+    data: new SlashCommandBuilder()
+        .setName("mycommand")
+        .setDescription("Description of my command"),
+
+    execute: async (interaction) => {
+        await interaction.reply("Hello from my command!");
+    },
 };
 ```
 
 3. Import and register the command in `src/bot.ts`:
-   - Add import: `import { myCommand } from './commands/mycommand';`
-   - Add to commands array: `const commands = [pingCommand, infoCommand, myCommand];`
+
+    - Add import: `import { myCommand } from './commands/mycommand';`
+    - Add to commands array: `const commands = [..., myCommand];`
 
 4. Import and add to `src/deploy-commands.ts`:
-   - Add import: `import { myCommand } from './commands/mycommand';`
-   - Add to commands array: `const commands = [pingCommand, infoCommand, myCommand].map(...)`
+
+    - Add import: `import { myCommand } from './commands/mycommand';`
+    - Add to commands array: `const commands = [..., myCommand].map(...)`
 
 5. Deploy the new command:
-   ```bash
-   pnpm deploy
-   ```
+    ```bash
+    pnpm deploy
+    ```
 
 ## Scripts
 
-- `pnpm dev` - Run in development mode with hot reload
-- `pnpm build` - Build TypeScript to JavaScript
-- `pnpm start` - Start the built bot
-- `pnpm deploy` - Deploy slash commands to Discord
-- `pnpm lint` - Run ESLint
-- `pnpm clean` - Remove build directory
+### Bot Commands
+
+-   `pnpm dev` - Run in development mode with hot reload
+-   `pnpm build` - Build TypeScript to JavaScript
+-   `pnpm start` - Start the built bot
+-   `pnpm deploy` - Deploy slash commands to Discord
+-   `pnpm lint` - Run ESLint
+-   `pnpm clean` - Remove build directory
+
+### Database Commands
+
+-   `pnpm db:generate` - Generate Prisma Client
+-   `pnpm db:push` - Push schema to database (dev)
+-   `pnpm db:migrate` - Create and run migrations
+-   `pnpm db:studio` - Open Prisma Studio GUI
+-   `pnpm db:seed` - Seed database with test data
 
 ## License
 
 ISC
-

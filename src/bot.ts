@@ -1,11 +1,14 @@
 import { Client, GatewayIntentBits, Collection } from 'discord.js';
 import { Command } from './types';
 import { logger } from './utils/logger';
+import { testDatabaseConnection } from './utils/database';
 import { botConfig } from './config';
 
 // Import commands
 import { pingCommand } from './commands/ping';
 import { infoCommand } from './commands/info';
+import { leaderboardCommand } from './commands/leaderboard';
+import { statsCommand } from './commands/stats';
 
 // Import events
 import { readyEvent } from './events/ready';
@@ -31,7 +34,7 @@ export function createBot(): Client {
   client.commands = new Collection<string, Command>();
 
   // Register commands
-  const commands = [pingCommand, infoCommand];
+  const commands = [pingCommand, infoCommand, leaderboardCommand, statsCommand];
   
   for (const command of commands) {
     client.commands.set(command.data.name, command);
@@ -53,6 +56,14 @@ export function createBot(): Client {
 export async function startBot(): Promise<void> {
   try {
     logger.info('Starting bot...');
+    
+    // Test database connection
+    const dbConnected = await testDatabaseConnection();
+    if (!dbConnected) {
+      logger.error('Failed to connect to database. Please check your DATABASE_URL.');
+      process.exit(1);
+    }
+    
     const client = createBot();
     await client.login(botConfig.token);
   } catch (error) {
