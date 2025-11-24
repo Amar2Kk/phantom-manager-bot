@@ -9,10 +9,12 @@ import { pingCommand } from './commands/ping';
 import { infoCommand } from './commands/info';
 import { leaderboardCommand } from './commands/leaderboard';
 import { statsCommand } from './commands/stats';
+import { rankCommand } from './commands/rank';
 
 // Import events
 import { readyEvent } from './events/ready';
 import { interactionCreateEvent } from './events/interactionCreate';
+import { messageCreateEvent } from './events/messageCreate';
 
 // Extend the Client type to include commands
 declare module 'discord.js' {
@@ -34,7 +36,7 @@ export function createBot(): Client {
   client.commands = new Collection<string, Command>();
 
   // Register commands
-  const commands = [pingCommand, infoCommand, leaderboardCommand, statsCommand];
+  const commands = [pingCommand, infoCommand, leaderboardCommand, statsCommand, rankCommand];
   
   for (const command of commands) {
     client.commands.set(command.data.name, command);
@@ -49,6 +51,11 @@ export function createBot(): Client {
     interactionCreateEvent.execute(client, interaction)
   );
   logger.info(`Loaded event: ${interactionCreateEvent.name}`);
+  
+  client.on(messageCreateEvent.name, (message) => 
+    messageCreateEvent.execute(client, message)
+  );
+  logger.info(`Loaded event: ${messageCreateEvent.name}`);
 
   return client;
 }

@@ -117,6 +117,7 @@ pnpm start
 
 -   `/ping` - Check bot latency
 -   `/info` - Get bot information
+-   `/rank` - Check your rank and XP (or another user's)
 -   `/leaderboard` - View XP leaderboard for the server
 -   `/stats` - View bot usage statistics
 

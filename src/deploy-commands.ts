@@ -7,13 +7,15 @@ import { pingCommand } from './commands/ping';
 import { infoCommand } from './commands/info';
 import { leaderboardCommand } from './commands/leaderboard';
 import { statsCommand } from './commands/stats';
+import { rankCommand } from './commands/rank';
 
 async function deployCommands() {
   const commands = [
     pingCommand, 
     infoCommand, 
     leaderboardCommand, 
-    statsCommand
+    statsCommand,
+    rankCommand
   ].map(command => command.data.toJSON());
 
   const rest = new REST().setToken(botConfig.token);
