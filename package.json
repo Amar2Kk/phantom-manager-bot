@@ -1,0 +1,35 @@
+{
+    "name": "phantom-manager-bot",
+    "version": "1.0.0",
+    "description": "A Discord bot built with discord.js and TypeScript",
+    "main": "dist/index.js",
+    "type": "module",
+    "scripts": {
+        "dev": "tsx watch src/index.ts",
+        "start": "node dist/index.js",
+        "build": "tsc",
+        "deploy": "tsx src/deploy-commands.ts",
+        "lint": "eslint src/**/*.ts",
+        "clean": "rm -rf dist"
+    },
+    "keywords": [
+        "discord",
+        "bot",
+        "typescript"
+    ],
+    "author": "",
+    "license": "ISC",
+    "packageManager": "pnpm@10.23.0",
+    "dependencies": {
+        "discord.js": "^14.25.1",
+        "dotenv": "^17.2.3"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.39.1",
+        "@types/node": "^24.10.1",
+        "eslint": "^9.39.1",
+        "globals": "^16.5.0",
+        "tsx": "^4.20.6",
+        "typescript": "^5.9.3"
+    }
+}
