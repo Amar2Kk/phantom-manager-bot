@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { Command } from '../types';
 import { OrderService } from '../services/order-service';
 import { OrderStatus } from '@prisma/client';
@@ -12,7 +12,7 @@ const statusMap = {
 export const orderStatusCommand: Command = {
   data: new SlashCommandBuilder()
     .setName('order-status')
-    .setDescription('Update or view an order status')
+    .setDescription('Update or view an order status (Admin only)')
     .addStringOption(option =>
       option
         .setName('order-id')
@@ -29,7 +29,8 @@ export const orderStatusCommand: Command = {
           { name: '✅ Done', value: OrderStatus.DONE },
           { name: '❌ Canceled', value: OrderStatus.CANCELED }
         )
-    ) as SlashCommandBuilder,
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator) as SlashCommandBuilder,
   
   execute: async (interaction) => {
     if (!interaction.guildId) {

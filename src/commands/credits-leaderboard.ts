@@ -1,11 +1,11 @@
-import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { Command } from '../types';
 import { OrderService } from '../services/order-service';
 
 export const creditsLeaderboardCommand: Command = {
   data: new SlashCommandBuilder()
     .setName('credits-leaderboard')
-    .setDescription('Show the credits leaderboard')
+    .setDescription('Show the credits leaderboard (Admin only)')
     .addIntegerOption(option =>
       option
         .setName('limit')
@@ -13,7 +13,8 @@ export const creditsLeaderboardCommand: Command = {
         .setMinValue(1)
         .setMaxValue(25)
         .setRequired(false)
-    ) as SlashCommandBuilder,
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator) as SlashCommandBuilder,
   
   execute: async (interaction) => {
     if (!interaction.guildId) {

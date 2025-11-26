@@ -22,12 +22,19 @@ export const interactionCreateEvent: BotEvent<Events.InteractionCreate> = {
     } catch (error) {
       logger.error(`Error executing command ${interaction.commandName}:`, error);
       
-      const errorMessage = 'There was an error executing this command!';
-      
-      if (interaction.replied || interaction.deferred) {
-        await interaction.followUp({ content: errorMessage, ephemeral: true });
-      } else {
-        await interaction.reply({ content: errorMessage, ephemeral: true });
+      try {
+        const errorMessage = 'There was an error executing this command!';
+        
+        // Check if interaction has been responded to in any way
+        if (interaction.replied || interaction.deferred) {
+          await interaction.followUp({ content: errorMessage, ephemeral: true });
+        } else {
+          // Modal interactions don't need a reply
+          await interaction.reply({ content: errorMessage, ephemeral: true });
+        }
+      } catch (replyError) {
+        // Interaction already handled or expired, just log it
+        logger.error('Could not send error message to user:', replyError);
       }
     }
   },

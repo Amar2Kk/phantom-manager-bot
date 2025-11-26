@@ -125,26 +125,34 @@ pnpm start
 ## Available Commands
 
 ### General
+
 -   `/ping` - Check bot latency
 -   `/info` - Get bot information
 
 ### Shop Order Management
+
 -   `/order` - Create a new shop order with interactive buttons
 -   `/order-status` - View an order's details
 -   `/orders` - List orders (with filters)
 
 ### Credits & Earnings
+
 -   `/total` - Quick view of your total credits
 -   `/credits` - Check user credits and order statistics
 -   `/credits-leaderboard` - View credits leaderboard
 
 ### Admin Commands
+
 -   `/set-leaderboard` - Set channel for live credits leaderboard (Admin only)
 -   `/remove-leaderboard` - Remove live credits leaderboard (Admin only)
 -   `/set-log-channel` - Set channel for bot action logs (Admin only)
 -   `/remove-log-channel` - Remove bot action logs (Admin only)
+-   `/reset-orders` - Archive orders for a specific user (Admin only)
+-   `/reset-all-orders` - Archive all orders for a fresh start (Admin only)
+-   `/archived-orders` - View archived orders
 -   `/reset-credits` - Reset a specific user's credits (Admin only)
 -   `/reset-all-credits` - Reset ALL users' credits (Admin only)
+-   `/clearmessages` - Bulk delete messages in current channel (Admin only)
 
 ## Project Structure
 

@@ -15,13 +15,12 @@ export const OrderService = {
     createdBy: string;
     notes?: string;
   }) {
-    // Check if order ID already exists in this guild
-    const existing = await db.order.findUnique({
+    // Check if order ID already exists in this guild (excluding archived)
+    const existing = await db.order.findFirst({
       where: {
-        orderId_guildId: {
-          orderId: data.orderId,
-          guildId: data.guildId,
-        },
+        orderId: data.orderId,
+        guildId: data.guildId,
+        archived: false,
       },
     });
 
@@ -202,21 +201,20 @@ export const OrderService = {
   },
 
   /**
-   * Get order by ID
+   * Get order by ID (only non-archived)
    */
   async getOrder(orderId: string, guildId: string) {
-    return await db.order.findUnique({
+    return await db.order.findFirst({
       where: {
-        orderId_guildId: {
-          orderId,
-          guildId,
-        },
+        orderId,
+        guildId,
+        archived: false,
       },
     });
   },
 
   /**
-   * List orders with filters
+   * List orders with filters (only non-archived)
    */
   async listOrders(guildId: string, filters?: {
     status?: OrderStatus;
@@ -226,6 +224,7 @@ export const OrderService = {
     return await db.order.findMany({
       where: {
         guildId,
+        archived: false,
         ...(filters?.status && { status: filters.status }),
         ...(filters?.assignedUserId && { assignedUserId: filters.assignedUserId }),
       },
@@ -262,24 +261,24 @@ export const OrderService = {
   },
 
   /**
-   * Get user order statistics
+   * Get user order statistics (only non-archived)
    */
   async getUserOrderStats(userId: string, guildId: string) {
     const [total, completed, pending, paymentReceived, canceled] = await Promise.all([
       db.order.count({
-        where: { assignedUserId: userId, guildId },
+        where: { assignedUserId: userId, guildId, archived: false },
       }),
       db.order.count({
-        where: { assignedUserId: userId, guildId, status: OrderStatus.DONE },
+        where: { assignedUserId: userId, guildId, archived: false, status: OrderStatus.DONE },
       }),
       db.order.count({
-        where: { assignedUserId: userId, guildId, status: OrderStatus.PENDING },
+        where: { assignedUserId: userId, guildId, archived: false, status: OrderStatus.PENDING },
       }),
       db.order.count({
-        where: { assignedUserId: userId, guildId, paymentReceived: true },
+        where: { assignedUserId: userId, guildId, archived: false, paymentReceived: true },
       }),
       db.order.count({
-        where: { assignedUserId: userId, guildId, status: OrderStatus.CANCELED },
+        where: { assignedUserId: userId, guildId, archived: false, status: OrderStatus.CANCELED },
       }),
     ]);
 

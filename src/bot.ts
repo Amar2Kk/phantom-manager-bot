@@ -19,12 +19,17 @@ import { setLeaderboardCommand } from './commands/set-leaderboard';
 import { removeLeaderboardCommand } from './commands/remove-leaderboard';
 import { setLogChannelCommand } from './commands/set-log-channel';
 import { removeLogChannelCommand } from './commands/remove-log-channel';
+import { resetOrdersCommand } from './commands/reset-orders';
+import { resetUserOrdersCommand } from './commands/reset-user-orders';
+import { archivedOrdersCommand } from './commands/archived-orders';
+import { clearMessagesCommand } from './commands/clearmessages';
 
 // Import events
 import { readyEvent } from './events/ready';
 import { interactionCreateEvent } from './events/interactionCreate';
 import { modalSubmitEvent } from './events/modalSubmit';
 import { buttonInteractionEvent } from './events/buttonInteraction';
+import { guildCreateEvent } from './events/guildCreate';
 
 // Extend the Client type to include commands
 declare module 'discord.js' {
@@ -60,7 +65,11 @@ export function createBot(): Client {
     setLeaderboardCommand,
     removeLeaderboardCommand,
     setLogChannelCommand,
-    removeLogChannelCommand
+    removeLogChannelCommand,
+    resetOrdersCommand,
+    resetUserOrdersCommand,
+    archivedOrdersCommand,
+    clearMessagesCommand
   ];
   
   for (const command of commands) {
@@ -86,6 +95,11 @@ export function createBot(): Client {
     buttonInteractionEvent.execute(client, interaction)
   );
   logger.info(`Loaded event: ${buttonInteractionEvent.name} (button interactions)`);
+  
+  client.on(guildCreateEvent.name, (guild) => 
+    guildCreateEvent.execute(client, guild)
+  );
+  logger.info(`Loaded event: ${guildCreateEvent.name} (guild join)`);
 
   return client;
 }

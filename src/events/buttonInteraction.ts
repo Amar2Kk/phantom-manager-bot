@@ -124,8 +124,24 @@ async function handleOrderStatusUpdate(
       interaction.client
     );
 
-    // Update the embed
-    await updateOrderEmbed(interaction, updatedOrder, oldStatus);
+    // If order is canceled, delete the message
+    if (newStatus === OrderStatus.CANCELED) {
+      try {
+        await interaction.message.delete();
+        logger.info(`Deleted canceled order message for ${orderId}`);
+        
+        // Send a follow-up message
+        await interaction.followUp({
+          content: `✅ Order \`${orderId}\` has been canceled and removed.`,
+          ephemeral: true,
+        });
+      } catch (error) {
+        logger.error('Error deleting order message:', error);
+      }
+    } else {
+      // Update the embed for non-canceled orders
+      await updateOrderEmbed(interaction, updatedOrder, oldStatus);
+    }
 
     logger.info(
       `Order ${orderId} status updated from ${oldStatus} to ${newStatus} by ${interaction.user.tag}`
@@ -216,36 +232,40 @@ async function updateOrderEmbed(
 
   // Create buttons
   const buttons: ButtonBuilder[] = [];
+  const isCanceled = order.status === OrderStatus.CANCELED;
 
-  // Payment button - changes style based on payment status
+  // Payment button - disabled if order is canceled
   buttons.push(
     new ButtonBuilder()
       .setCustomId(`order_payment_${order.orderId}`)
       .setLabel(order.paymentReceived ? '💵 Payment Received' : '💵 Mark Payment Received')
       .setStyle(order.paymentReceived ? ButtonStyle.Secondary : ButtonStyle.Primary)
+      .setDisabled(isCanceled)
   );
 
-  // Done button - hide if already done
-  if (order.status !== OrderStatus.DONE) {
-    buttons.push(
-      new ButtonBuilder()
-        .setCustomId(`order_done_${order.orderId}`)
-        .setLabel('✅ Mark as Done')
-        .setStyle(ButtonStyle.Success)
-    );
-  }
+  // Done button - disabled if order is canceled or already done
+  buttons.push(
+    new ButtonBuilder()
+      .setCustomId(`order_done_${order.orderId}`)
+      .setLabel('✅ Mark as Done')
+      .setStyle(order.status === OrderStatus.DONE ? ButtonStyle.Secondary : ButtonStyle.Success)
+      .setDisabled(isCanceled || order.status === OrderStatus.DONE)
+  );
 
-  // Cancel button - hide if already canceled
-  if (order.status !== OrderStatus.CANCELED) {
-    buttons.push(
-      new ButtonBuilder()
-        .setCustomId(`order_cancel_${order.orderId}`)
-        .setLabel('❌ Cancel Order')
-        .setStyle(ButtonStyle.Danger)
-    );
-  }
+  // Cancel button - disabled if order is already canceled
+  buttons.push(
+    new ButtonBuilder()
+      .setCustomId(`order_cancel_${order.orderId}`)
+      .setLabel('❌ Cancel Order')
+      .setStyle(order.status === OrderStatus.CANCELED ? ButtonStyle.Secondary : ButtonStyle.Danger)
+      .setDisabled(isCanceled)
+  );
 
-  embed.setFooter({ text: 'Use buttons to update order status and payment' });
+  embed.setFooter({ 
+    text: isCanceled 
+      ? '🔒 Order is canceled and cannot be modified' 
+      : 'Use buttons to update order status and payment' 
+  });
 
   const row = new ActionRowBuilder<ButtonBuilder>().addComponents(buttons);
 

@@ -17,6 +17,10 @@ import { setLeaderboardCommand } from './commands/set-leaderboard';
 import { removeLeaderboardCommand } from './commands/remove-leaderboard';
 import { setLogChannelCommand } from './commands/set-log-channel';
 import { removeLogChannelCommand } from './commands/remove-log-channel';
+import { resetOrdersCommand } from './commands/reset-orders';
+import { resetUserOrdersCommand } from './commands/reset-user-orders';
+import { archivedOrdersCommand } from './commands/archived-orders';
+import { clearMessagesCommand } from './commands/clearmessages';
 
 async function deployCommands() {
   const commands = [
@@ -33,7 +37,11 @@ async function deployCommands() {
     setLeaderboardCommand,
     removeLeaderboardCommand,
     setLogChannelCommand,
-    removeLogChannelCommand
+    removeLogChannelCommand,
+    resetOrdersCommand,
+    resetUserOrdersCommand,
+    archivedOrdersCommand,
+    clearMessagesCommand
   ].map(command => command.data.toJSON());
 
   const rest = new REST().setToken(botConfig.token);

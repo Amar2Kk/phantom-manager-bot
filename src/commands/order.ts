@@ -4,7 +4,8 @@ import {
   TextInputBuilder, 
   TextInputStyle,
   ActionRowBuilder,
-  ModalActionRowComponentBuilder
+  ModalActionRowComponentBuilder,
+  PermissionFlagsBits
 } from 'discord.js';
 import { Command } from '../types';
 import { OrderService } from '../services/order-service';
@@ -12,13 +13,14 @@ import { OrderService } from '../services/order-service';
 export const orderCommand: Command = {
   data: new SlashCommandBuilder()
     .setName('order')
-    .setDescription('Create a new shop order')
+    .setDescription('Create a new shop order (Admin only)')
     .addUserOption(option =>
       option
         .setName('user')
         .setDescription('The user to assign this order to')
         .setRequired(true)
-    ) as SlashCommandBuilder,
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator) as SlashCommandBuilder,
   
   execute: async (interaction) => {
     if (!interaction.guildId) {
