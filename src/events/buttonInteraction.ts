@@ -7,10 +7,10 @@ import {
   ButtonStyle
 } from 'discord.js';
 import { BotEvent } from '../types';
-import { OrderService } from '../services/order-service';
+import { OrderService } from '../services/order-service.js';
 import { OrderStatus } from '@prisma/client';
-import { logger } from '../utils/logger';
-import { LogService } from '../services/log-service';
+import { logger } from '../utils/logger.js';
+import { LogService } from '../services/log-service.js';
 
 const statusMap = {
   [OrderStatus.PENDING]: { emoji: '⏳', label: 'Pending', color: 0xFFA500 },

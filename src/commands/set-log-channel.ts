@@ -1,7 +1,7 @@
 import { SlashCommandBuilder, PermissionFlagsBits, ChannelType } from 'discord.js';
 import { Command } from '../types';
-import { db } from '../utils/database';
-import { GuildService } from '../services/guild-service';
+import { db } from '../utils/database.js';
+import { GuildService } from '../services/guild-service.js';
 
 export const setLogChannelCommand: Command = {
   data: new SlashCommandBuilder()

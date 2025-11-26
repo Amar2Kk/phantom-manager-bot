@@ -8,7 +8,7 @@ import {
   PermissionFlagsBits
 } from 'discord.js';
 import { Command } from '../types';
-import { OrderService } from '../services/order-service';
+import { OrderService } from '../services/order-service.js';
 
 export const orderCommand: Command = {
   data: new SlashCommandBuilder()

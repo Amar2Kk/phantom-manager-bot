@@ -1,7 +1,7 @@
 import { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { Command } from '../types';
-import { db } from '../utils/database';
-import { LogService } from '../services/log-service';
+import { db } from '../utils/database.js';
+import { LogService } from '../services/log-service.js';
 
 export const resetCreditsCommand: Command = {
   data: new SlashCommandBuilder()

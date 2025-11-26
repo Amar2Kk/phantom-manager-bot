@@ -1,7 +1,7 @@
 import { Events, Guild, EmbedBuilder, TextChannel, ChannelType } from 'discord.js';
 import { BotEvent } from '../types';
-import { GuildService } from '../services/guild-service';
-import { logger } from '../utils/logger';
+import { GuildService } from '../services/guild-service.js';
+import { logger } from '../utils/logger.js';
 
 export const guildCreateEvent: BotEvent<Events.GuildCreate> = {
   name: Events.GuildCreate,

@@ -1,6 +1,6 @@
 import { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { Command } from '../types';
-import { db } from '../utils/database';
+import { db } from '../utils/database.js';
 import { OrderStatus } from '@prisma/client';
 
 const statusEmoji = {

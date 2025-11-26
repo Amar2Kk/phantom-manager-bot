@@ -1,6 +1,6 @@
 import { SlashCommandBuilder, PermissionFlagsBits, ChannelType } from 'discord.js';
 import { Command } from '../types';
-import { LeaderboardService } from '../services/leaderboard-service';
+import { LeaderboardService } from '../services/leaderboard-service.js';
 
 export const setLeaderboardCommand: Command = {
   data: new SlashCommandBuilder()

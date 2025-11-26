@@ -1,6 +1,6 @@
 import { Client, EmbedBuilder, TextChannel } from 'discord.js';
-import { db } from '../utils/database';
-import { logger } from '../utils/logger';
+import { db } from '../utils/database.js';
+import { logger } from '../utils/logger.js';
 
 export const LogService = {
   /**

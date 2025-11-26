@@ -8,8 +8,8 @@ import {
   ComponentType
 } from 'discord.js';
 import { Command } from '../types';
-import { db } from '../utils/database';
-import { LogService } from '../services/log-service';
+import { db } from '../utils/database.js';
+import { LogService } from '../services/log-service.js';
 
 export const resetUserOrdersCommand: Command = {
   data: new SlashCommandBuilder()

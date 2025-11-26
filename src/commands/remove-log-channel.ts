@@ -1,6 +1,6 @@
 import { SlashCommandBuilder, PermissionFlagsBits } from 'discord.js';
 import { Command } from '../types';
-import { db } from '../utils/database';
+import { db } from '../utils/database.js';
 
 export const removeLogChannelCommand: Command = {
   data: new SlashCommandBuilder()

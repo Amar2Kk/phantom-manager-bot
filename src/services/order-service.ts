@@ -1,4 +1,4 @@
-import { db } from '../utils/database';
+import { db } from '../utils/database.js';
 import { OrderStatus } from '@prisma/client';
 import { Client } from 'discord.js';
 

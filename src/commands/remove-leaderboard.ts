@@ -1,6 +1,6 @@
 import { SlashCommandBuilder, PermissionFlagsBits } from 'discord.js';
 import { Command } from '../types';
-import { LeaderboardService } from '../services/leaderboard-service';
+import { LeaderboardService } from '../services/leaderboard-service.js';
 
 export const removeLeaderboardCommand: Command = {
   data: new SlashCommandBuilder()
