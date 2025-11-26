@@ -1,36 +1,36 @@
 import { Client, GatewayIntentBits, Collection } from 'discord.js';
-import { Command } from './types';
-import { logger } from './utils/logger';
-import { testDatabaseConnection } from './utils/database';
-import { botConfig } from './config';
+import { Command } from './types.js';
+import { logger } from './utils/logger.js';
+import { testDatabaseConnection } from './utils/database.js';
+import { botConfig } from './config.js';
 
 // Import commands
-import { pingCommand } from './commands/ping';
-import { infoCommand } from './commands/info';
-import { orderCommand } from './commands/order';
-import { orderStatusCommand } from './commands/order-status';
-import { ordersCommand } from './commands/orders';
-import { creditsCommand } from './commands/credits';
-import { creditsLeaderboardCommand } from './commands/credits-leaderboard';
-import { totalCommand } from './commands/total';
-import { resetCreditsCommand } from './commands/reset-credits';
-import { resetAllCreditsCommand } from './commands/reset-all-credits';
-import { setLeaderboardCommand } from './commands/set-leaderboard';
-import { removeLeaderboardCommand } from './commands/remove-leaderboard';
-import { setLogChannelCommand } from './commands/set-log-channel';
-import { removeLogChannelCommand } from './commands/remove-log-channel';
-import { resetOrdersCommand } from './commands/reset-orders';
-import { resetUserOrdersCommand } from './commands/reset-user-orders';
-import { archivedOrdersCommand } from './commands/archived-orders';
-import { clearMessagesCommand } from './commands/clearmessages';
-import { deleteUserCommand } from './commands/delete-user';
+import { pingCommand } from './commands/ping.js';
+import { infoCommand } from './commands/info.js';
+import { orderCommand } from './commands/order.js';
+import { orderStatusCommand } from './commands/order-status.js';
+import { ordersCommand } from './commands/orders.js';
+import { creditsCommand } from './commands/credits.js';
+import { creditsLeaderboardCommand } from './commands/credits-leaderboard.js';
+import { totalCommand } from './commands/total.js';
+import { resetCreditsCommand } from './commands/reset-credits.js';
+import { resetAllCreditsCommand } from './commands/reset-all-credits.js';
+import { setLeaderboardCommand } from './commands/set-leaderboard.js';
+import { removeLeaderboardCommand } from './commands/remove-leaderboard.js';
+import { setLogChannelCommand } from './commands/set-log-channel.js';
+import { removeLogChannelCommand } from './commands/remove-log-channel.js';
+import { resetOrdersCommand } from './commands/reset-orders.js';
+import { resetUserOrdersCommand } from './commands/reset-user-orders.js';
+import { archivedOrdersCommand } from './commands/archived-orders.js';
+import { clearMessagesCommand } from './commands/clearmessages.js';
+import { deleteUserCommand } from './commands/delete-user.js';
 
 // Import events
-import { readyEvent } from './events/ready';
-import { interactionCreateEvent } from './events/interactionCreate';
-import { modalSubmitEvent } from './events/modalSubmit';
-import { buttonInteractionEvent } from './events/buttonInteraction';
-import { guildCreateEvent } from './events/guildCreate';
+import { readyEvent } from './events/ready.js';
+import { interactionCreateEvent } from './events/interactionCreate.js';
+import { modalSubmitEvent } from './events/modalSubmit.js';
+import { buttonInteractionEvent } from './events/buttonInteraction.js';
+import { guildCreateEvent } from './events/guildCreate.js';
 
 // Extend the Client type to include commands
 declare module 'discord.js' {
