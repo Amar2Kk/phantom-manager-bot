@@ -53,30 +53,33 @@ export const LeaderboardService = {
       // Create table
       let table = '';
       if (usersWithNames.length > 0) {
-        // Header
+        // Header - Border has 6 dashes for rank, 22 for user, 14 for credits
         table += '```\n';
-        table += '┌──────┬─────────────────────┬──────────────┐\n';
-        table += '│ Rank │ User                │ Credits      │\n';
-        table += '├──────┼─────────────────────┼──────────────┤\n';
+        table += '┌──────┬──────────────────────┬──────────────┐\n';
+        table += '│ Rank │ User                 │      Credits │\n';
+        table += '├──────┼──────────────────────┼──────────────┤\n';
 
         // Rows
         usersWithNames.forEach((user, index) => {
-          const rank = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
-          const username = user.username.length > 18 
-            ? user.username.substring(0, 15) + '...' 
+          const rank = `#${index + 1}`;
+          const username = user.username.length > 20 
+            ? user.username.substring(0, 17) + '...' 
             : user.username;
           const credits = `$${user.credits.toFixed(2)}`;
           
-          // Pad strings to fit columns
-          const rankPad = rank.length > 2 ? rank : rank.padEnd(4, ' ');
-          const userPad = username.padEnd(19, ' ');
+          // Pad strings to fit columns exactly
+          // Rank column: 4 chars
+          const rankPad = rank.padEnd(4, ' ');
+          // User column: 20 chars
+          const userPad = username.padEnd(20, ' ');
+          // Credits column: 12 chars (right-aligned)
           const creditPad = credits.padStart(12, ' ');
           
           table += `│ ${rankPad} │ ${userPad} │ ${creditPad} │\n`;
         });
 
         // Footer
-        table += '└──────┴─────────────────────┴──────────────┘\n';
+        table += '└──────┴──────────────────────┴──────────────┘\n';
         table += '```';
       } else {
         table = '```\nNo users with credits yet\n```';
