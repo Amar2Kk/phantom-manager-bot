@@ -1,5 +1,5 @@
-import { startBot } from './bot.js.js';
-import { logger } from './utils/logger.js.js';
+import { startBot } from './bot.js';
+import { logger } from './utils/logger.js';
 
 // Handle uncaught errors
 process.on('unhandledRejection', (error) => {
