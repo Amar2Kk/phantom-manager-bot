@@ -57,13 +57,6 @@ RUN pnpm prune --prod
 # Set environment to production
 ENV NODE_ENV=production
 
-# Create a startup script
-RUN echo '#!/bin/sh\n\
-echo "Running database migrations..."\n\
-pnpm prisma migrate deploy\n\
-echo "Starting bot..."\n\
-node dist/index.js' > /app/start.sh && chmod +x /app/start.sh
-
-# Run the startup script
-CMD ["/app/start.sh"]
+# Create a startup script that will run migrations and start the bot
+CMD sh -c "echo 'Running database migrations...' && pnpm prisma migrate deploy && echo 'Starting bot...' && node dist/index.js"
 
