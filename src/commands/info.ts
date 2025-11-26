@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
-import { Command } from '../types';
+import { Command } from '../types.js';
 
 export const infoCommand: Command = {
   data: new SlashCommandBuilder()

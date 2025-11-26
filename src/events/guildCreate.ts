@@ -1,5 +1,5 @@
 import { Events, Guild, EmbedBuilder, TextChannel, ChannelType } from 'discord.js';
-import { BotEvent } from '../types';
+import { BotEvent } from '../types.js';
 import { GuildService } from '../services/guild-service.js';
 import { logger } from '../utils/logger.js';
 

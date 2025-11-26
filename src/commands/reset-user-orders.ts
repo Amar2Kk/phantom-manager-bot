@@ -7,7 +7,7 @@ import {
   ButtonStyle,
   ComponentType
 } from 'discord.js';
-import { Command } from '../types';
+import { Command } from '../types.js';
 import { db } from '../utils/database.js';
 import { LogService } from '../services/log-service.js';
 

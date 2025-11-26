@@ -6,7 +6,7 @@ import {
   ButtonBuilder,
   ButtonStyle
 } from 'discord.js';
-import { BotEvent } from '../types';
+import { BotEvent } from '../types.js';
 import { OrderService } from '../services/order-service.js';
 import { OrderStatus } from '@prisma/client';
 import { logger } from '../utils/logger.js';

@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, PermissionFlagsBits, ChannelType } from 'discord.js';
-import { Command } from '../types';
+import { Command } from '../types.js';
 import { db } from '../utils/database.js';
 import { GuildService } from '../services/guild-service.js';
 

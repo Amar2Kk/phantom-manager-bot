@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, PermissionFlagsBits, TextChannel } from 'discord.js';
-import { Command } from '../types';
+import { Command } from '../types.js';
 import { logger } from '../utils/logger.js';
 
 export const clearMessagesCommand: Command = {

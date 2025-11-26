@@ -1,5 +1,5 @@
 import { Events } from 'discord.js';
-import { BotEvent } from '../types';
+import { BotEvent } from '../types.js';
 import { logger } from '../utils/logger.js';
 
 export const readyEvent: BotEvent<Events.ClientReady> = {

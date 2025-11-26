@@ -7,7 +7,7 @@ import {
   ModalActionRowComponentBuilder,
   PermissionFlagsBits
 } from 'discord.js';
-import { Command } from '../types';
+import { Command } from '../types.js';
 import { OrderService } from '../services/order-service.js';
 
 export const orderCommand: Command = {
