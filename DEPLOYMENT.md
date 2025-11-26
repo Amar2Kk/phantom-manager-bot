@@ -17,9 +17,9 @@ This guide covers deploying the Phantom Manager Bot to Coolify using Docker.
 1. In Coolify, go to **Databases** → **New Database**
 2. Select **PostgreSQL**
 3. Configure the database:
-     - **Name**: `phantom-bot-db` (or any name)
-     - **Version**: Latest stable (15 or 16)
-     - **Database Name**: `postgres` (default is fine)
+    - **Name**: `phantom-bot-db` (or any name)
+    - **Version**: Latest stable (15 or 16)
+    - **Database Name**: `postgres` (default is fine)
 4. Click **Create**
 5. Once created, copy the **Internal Connection String** (looks like: `postgres://postgres:password@servicename:5432/postgres`)
 
@@ -29,9 +29,9 @@ This guide covers deploying the Phantom Manager Bot to Coolify using Docker.
 2. Select your **GitHub repository**: `Amar2Kk/phantom-manager-bot`
 3. Select the **main** branch
 4. Configure basic settings:
-     - **Build Pack**: **Dockerfile** (select this instead of Nixpacks)
-     - **Dockerfile Location**: `Dockerfile` (default)
-     - **Port**: Not needed (Discord bot doesn't expose HTTP)
+    - **Build Pack**: **Dockerfile** (select this instead of Nixpacks)
+    - **Dockerfile Location**: `Dockerfile` (default)
+    - **Port**: Not needed (Discord bot doesn't expose HTTP)
 
 ## Step 3: Configure Environment Variables
 
@@ -223,16 +223,19 @@ docker-compose -f docker-compose.production.yml logs db
 ## Managing Docker Deployment
 
 ### Stop Services
+
 ```bash
 docker-compose -f docker-compose.production.yml down
 ```
 
 ### Restart Services
+
 ```bash
 docker-compose -f docker-compose.production.yml restart
 ```
 
 ### Update Bot
+
 ```bash
 # Pull latest code
 git pull
@@ -242,6 +245,7 @@ docker-compose -f docker-compose.production.yml up -d --build
 ```
 
 ### View Logs
+
 ```bash
 # All services
 docker-compose -f docker-compose.production.yml logs -f
@@ -254,6 +258,7 @@ docker-compose -f docker-compose.production.yml logs -f db
 ```
 
 ### Database Backup
+
 ```bash
 # Backup database
 docker exec phantom-bot-db pg_dump -U postgres phantom_bot > backup.sql
@@ -279,6 +284,7 @@ FROM node:22-alpine AS runner
 ```
 
 ### Build Process:
+
 1. Install dependencies with pnpm
 2. Generate Prisma Client
 3. Compile TypeScript to JavaScript

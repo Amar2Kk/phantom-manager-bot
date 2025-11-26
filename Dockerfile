@@ -10,7 +10,6 @@ WORKDIR /app
 # Copy package files and prisma files FIRST
 COPY package.json pnpm-lock.yaml ./
 COPY prisma ./prisma
-COPY prisma.config.ts ./
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile
@@ -38,7 +37,6 @@ COPY package.json pnpm-lock.yaml ./
 
 # Copy prisma files BEFORE installing (needed for generation)
 COPY prisma ./prisma
-COPY prisma.config.ts ./
 
 # Install ALL dependencies temporarily (needed for prisma)
 RUN pnpm install --frozen-lockfile
