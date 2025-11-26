@@ -5,17 +5,27 @@ import { logger } from './utils/logger';
 // Import commands
 import { pingCommand } from './commands/ping';
 import { infoCommand } from './commands/info';
-import { leaderboardCommand } from './commands/leaderboard';
-import { statsCommand } from './commands/stats';
-import { rankCommand } from './commands/rank';
+import { orderCommand } from './commands/order';
+import { orderStatusCommand } from './commands/order-status';
+import { ordersCommand } from './commands/orders';
+import { creditsCommand } from './commands/credits';
+import { creditsLeaderboardCommand } from './commands/credits-leaderboard';
+import { totalCommand } from './commands/total';
+import { resetCreditsCommand } from './commands/reset-credits';
+import { resetAllCreditsCommand } from './commands/reset-all-credits';
 
 async function deployCommands() {
   const commands = [
     pingCommand, 
-    infoCommand, 
-    leaderboardCommand, 
-    statsCommand,
-    rankCommand
+    infoCommand,
+    orderCommand,
+    orderStatusCommand,
+    ordersCommand,
+    creditsCommand,
+    creditsLeaderboardCommand,
+    totalCommand,
+    resetCreditsCommand,
+    resetAllCreditsCommand
   ].map(command => command.data.toJSON());
 
   const rest = new REST().setToken(botConfig.token);

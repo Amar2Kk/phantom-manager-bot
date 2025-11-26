@@ -6,11 +6,14 @@ A Discord bot built with discord.js and TypeScript.
 
 -   ✅ Built with TypeScript for type safety
 -   ✅ PostgreSQL database with Prisma ORM
+-   ✅ **Shop Order Management System**
+    -   Create and track orders with interactive buttons
+    -   Automatic credit calculation
+    -   Order status workflow (Pending → Payment Received → Done/Canceled)
+    -   User credits and earnings tracking
+    -   Credits leaderboard
+    -   Admin credit management
 -   ✅ Modular command structure
--   ✅ Event handling system
--   ✅ User XP/leveling system
--   ✅ Command usage analytics
--   ✅ Guild-specific settings
 -   ✅ Easy to extend with new commands
 -   ✅ Development mode with hot reload
 
@@ -115,11 +118,23 @@ pnpm start
 
 ## Available Commands
 
+### General
 -   `/ping` - Check bot latency
 -   `/info` - Get bot information
--   `/rank` - Check your rank and XP (or another user's)
--   `/leaderboard` - View XP leaderboard for the server
--   `/stats` - View bot usage statistics
+
+### Shop Order Management
+-   `/order` - Create a new shop order with interactive buttons
+-   `/order-status` - View an order's details
+-   `/orders` - List orders (with filters)
+
+### Credits & Earnings
+-   `/total` - Quick view of your total credits
+-   `/credits` - Check user credits and order statistics
+-   `/credits-leaderboard` - View credits leaderboard
+
+### Admin Commands
+-   `/reset-credits` - Reset a specific user's credits (Admin only)
+-   `/reset-all-credits` - Reset ALL users' credits (Admin only)
 
 ## Project Structure
 
@@ -133,15 +148,22 @@ phantom-manager-bot/
 │   ├── commands/       # Slash commands
 │   │   ├── ping.ts
 │   │   ├── info.ts
-│   │   ├── leaderboard.ts
-│   │   └── stats.ts
+│   │   ├── order.ts
+│   │   ├── order-status.ts
+│   │   ├── orders.ts
+│   │   ├── credits.ts
+│   │   ├── credits-leaderboard.ts
+│   │   ├── total.ts
+│   │   ├── reset-credits.ts
+│   │   └── reset-all-credits.ts
 │   ├── events/         # Event handlers
 │   │   ├── ready.ts
-│   │   └── interactionCreate.ts
+│   │   ├── interactionCreate.ts
+│   │   ├── modalSubmit.ts
+│   │   └── buttonInteraction.ts
 │   ├── services/       # Business logic
 │   │   ├── guild-service.ts
-│   │   ├── user-service.ts
-│   │   └── analytics-service.ts
+│   │   └── order-service.ts
 │   ├── utils/          # Utility functions
 │   │   ├── logger.ts
 │   │   └── database.ts
@@ -153,6 +175,8 @@ phantom-manager-bot/
 ├── .env                # Environment variables (create this)
 ├── .env.example        # Environment template
 ├── DATABASE.md         # Database setup guide
+├── SHOP-GUIDE.md       # Shop system guide
+├── DOCKER.md           # Docker database guide
 ├── tsconfig.json       # TypeScript configuration
 └── package.json        # Project dependencies
 ```

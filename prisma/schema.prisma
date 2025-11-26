@@ -110,3 +110,49 @@ model ModerationLog {
   @@index([createdAt])
   @@map("moderation_logs")
 }
+
+// Shop Orders
+model Order {
+  id              String      @id @default(cuid())
+  orderId         String // Custom order ID from user
+  guildId         String
+  game            String // Game name
+  price           Float // Order price
+  assignedUserId  String // User assigned to complete the order
+  createdBy       String // Discord user ID who created the order
+  status          OrderStatus @default(PENDING)
+  completedAt     DateTime?
+  canceledAt      DateTime?
+  notes           String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@unique([orderId, guildId])
+  @@index([guildId])
+  @@index([assignedUserId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+enum OrderStatus {
+  PENDING // Payment not received yet
+  PAYMENT_RECEIVED // Payment received, work in progress
+  DONE // Order completed
+  CANCELED // Order canceled
+}
+
+// User Credits (earnings from completed orders)
+model UserCredit {
+  id        String   @id @default(cuid())
+  userId    String // Discord user ID
+  guildId   String
+  credits   Float    @default(0) // Total credits earned
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, guildId])
+  @@index([guildId])
+  @@index([userId])
+  @@map("user_credits")
+}

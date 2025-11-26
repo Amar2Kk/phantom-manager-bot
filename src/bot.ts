@@ -7,14 +7,20 @@ import { botConfig } from './config';
 // Import commands
 import { pingCommand } from './commands/ping';
 import { infoCommand } from './commands/info';
-import { leaderboardCommand } from './commands/leaderboard';
-import { statsCommand } from './commands/stats';
-import { rankCommand } from './commands/rank';
+import { orderCommand } from './commands/order';
+import { orderStatusCommand } from './commands/order-status';
+import { ordersCommand } from './commands/orders';
+import { creditsCommand } from './commands/credits';
+import { creditsLeaderboardCommand } from './commands/credits-leaderboard';
+import { totalCommand } from './commands/total';
+import { resetCreditsCommand } from './commands/reset-credits';
+import { resetAllCreditsCommand } from './commands/reset-all-credits';
 
 // Import events
 import { readyEvent } from './events/ready';
 import { interactionCreateEvent } from './events/interactionCreate';
-import { messageCreateEvent } from './events/messageCreate';
+import { modalSubmitEvent } from './events/modalSubmit';
+import { buttonInteractionEvent } from './events/buttonInteraction';
 
 // Extend the Client type to include commands
 declare module 'discord.js' {
@@ -36,7 +42,18 @@ export function createBot(): Client {
   client.commands = new Collection<string, Command>();
 
   // Register commands
-  const commands = [pingCommand, infoCommand, leaderboardCommand, statsCommand, rankCommand];
+  const commands = [
+    pingCommand, 
+    infoCommand,
+    orderCommand,
+    orderStatusCommand,
+    ordersCommand,
+    creditsCommand,
+    creditsLeaderboardCommand,
+    totalCommand,
+    resetCreditsCommand,
+    resetAllCreditsCommand
+  ];
   
   for (const command of commands) {
     client.commands.set(command.data.name, command);
@@ -52,10 +69,15 @@ export function createBot(): Client {
   );
   logger.info(`Loaded event: ${interactionCreateEvent.name}`);
   
-  client.on(messageCreateEvent.name, (message) => 
-    messageCreateEvent.execute(client, message)
+  client.on(modalSubmitEvent.name, (interaction) => 
+    modalSubmitEvent.execute(client, interaction)
   );
-  logger.info(`Loaded event: ${messageCreateEvent.name}`);
+  logger.info(`Loaded event: ${modalSubmitEvent.name} (modal submissions)`);
+  
+  client.on(buttonInteractionEvent.name, (interaction) => 
+    buttonInteractionEvent.execute(client, interaction)
+  );
+  logger.info(`Loaded event: ${buttonInteractionEvent.name} (button interactions)`);
 
   return client;
 }
