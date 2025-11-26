@@ -153,6 +153,7 @@ pnpm start
 -   `/reset-credits` - Reset a specific user's credits (Admin only)
 -   `/reset-all-credits` - Reset ALL users' credits (Admin only)
 -   `/clearmessages` - Bulk delete messages in current channel (Admin only)
+-   `/delete-user` - Permanently delete all user data (Admin only - IRREVERSIBLE)
 
 ## Project Structure
 

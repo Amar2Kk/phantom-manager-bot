@@ -23,6 +23,7 @@ import { resetOrdersCommand } from './commands/reset-orders';
 import { resetUserOrdersCommand } from './commands/reset-user-orders';
 import { archivedOrdersCommand } from './commands/archived-orders';
 import { clearMessagesCommand } from './commands/clearmessages';
+import { deleteUserCommand } from './commands/delete-user';
 
 // Import events
 import { readyEvent } from './events/ready';
@@ -69,7 +70,8 @@ export function createBot(): Client {
     resetOrdersCommand,
     resetUserOrdersCommand,
     archivedOrdersCommand,
-    clearMessagesCommand
+    clearMessagesCommand,
+    deleteUserCommand
   ];
   
   for (const command of commands) {
