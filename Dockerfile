@@ -48,7 +48,6 @@ RUN pnpm prisma generate
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
-COPY test-db-connection.js ./
 
 # Set environment to production
 ENV NODE_ENV=production
@@ -57,5 +56,5 @@ ENV NODE_ENV=production
 # The image size increase is minimal compared to the functionality benefit
 
 # Create a startup script that will run migrations and start the bot
-CMD sh -c "echo 'Testing database connection first...' && node test-db-connection.js && echo 'Running database migrations...' && pnpm prisma migrate resolve --applied 0_init && pnpm prisma migrate resolve --applied 20251126142754_init && pnpm prisma migrate deploy && echo 'Starting bot...' && node dist/index.js"
+CMD sh -c "echo 'Running database migrations...' && pnpm prisma migrate deploy && echo 'Starting bot...' && node dist/index.js"
 
