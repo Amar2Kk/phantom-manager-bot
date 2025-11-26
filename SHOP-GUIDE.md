@@ -9,19 +9,26 @@ The bot includes a complete order management system for tracking shop orders, ma
 ## Order Workflow
 
 ```
-1. Create Order → 2. Payment Received → 3. Done → Credits Added ✅
-                                      ↓
-                                  Canceled → Credits Deducted ⚠️
+1. Create Order → 2. Toggle Payment Received (💵) → 3. Done → Credits Added ✅
+                                                    ↓
+                                                Canceled → Credits Deducted ⚠️
 ```
 
 ## Order Statuses
 
 | Status | Emoji | Description | Credits Impact |
 |--------|-------|-------------|----------------|
-| **Pending** | ⏳ | Payment not received yet | No change |
-| **Payment Received** | 💵 | Payment received, work in progress | No change |
+| **Pending** | ⏳ | Order pending | No change |
 | **Done** | ✅ | Order completed successfully | **+Credits** added to assigned user |
 | **Canceled** | ❌ | Order canceled | **-Credits** deducted if previously marked as Done |
+
+## Payment Status
+
+Payment status is **separate** from order status and works as a **toggle**:
+- **⏳ Pending** - Payment not yet received
+- **✅ Received** - Payment has been received
+
+You can mark payment as received at any time, regardless of order status. Payment status does NOT affect credits.
 
 ## Commands
 
@@ -36,7 +43,7 @@ Create a new shop order with interactive status buttons.
    - **Price**: Order price in dollars (e.g., 25.50)
    - **Notes**: Optional additional details
 3. Order is created with 3 interactive buttons:
-   - **💵 Payment Received** - Mark when payment is received
+   - **💵 Mark Payment Received** - Toggle payment status (does NOT affect credits)
    - **✅ Mark as Done** - Complete the order (adds credits)
    - **❌ Cancel Order** - Cancel the order (deducts credits if was done)
 
@@ -172,10 +179,9 @@ When a **Done** order is marked as **Canceled**:
 
 ### Status Changes
 - **Pending → Done**: Credits added
-- **Payment Received → Done**: Credits added
 - **Done → Canceled**: Credits deducted
-- **Done → Pending**: Credits deducted
-- **Done → Payment Received**: Credits deducted
+- **Canceled → Done**: Credits added back
+- **Payment status changes**: No credit impact (it's just a flag)
 
 ## Best Practices
 
@@ -186,9 +192,11 @@ When a **Done** order is marked as **Canceled**:
 
 ### Order Flow
 1. **Create order** with `/order` - Creates embed with buttons
-2. **Click "💵 Payment Received"** when customer pays
+2. **Click "💵 Mark Payment Received"** when customer pays (toggle - doesn't affect credits)
 3. **Click "✅ Mark as Done"** when order is completed (adds credits)
 4. **Click "❌ Cancel Order"** only if necessary (deducts credits if was done)
+
+**Note:** Payment status is independent of order status. You can toggle payment received at any time.
 
 ### Managing Credits
 - Check credits regularly with `/credits`
@@ -209,8 +217,9 @@ Fill form:
 - Price: 75.00
 - Notes: Predator rank boost
 
-**2. Update to Payment Received**
-Click the **💵 Payment Received** button on the order message
+**2. Mark Payment Received**
+Click the **💵 Mark Payment Received** button on the order message
+(This toggles the payment flag - no credit change)
 
 **3. Complete Order**
 Click the **✅ Mark as Done** button
@@ -228,14 +237,15 @@ Click the **❌ Cancel Order** button on the order message
 ⚠️ Sarah's credits: -$75.00 (deducted)
 
 **Note:** 
-- **All buttons remain active** at all times (except the current status button)
+- **Payment button is always active** - it's a toggle, not a status
+- **Status buttons hide when already in that status** (e.g., if Done, only Cancel button shows)
 - Orders can transition between any states:
   - Done → Canceled (deducts credits)
   - Canceled → Done (adds credits back)
-  - Done → Payment Received → Done (no credit change)
 - Credits are calculated based on status changes:
   - Changing TO Done: Adds credits
-  - Changing FROM Done to anything else: Deducts credits
+  - Changing FROM Done to Canceled: Deducts credits
+- Payment status does NOT affect credits
 
 ## Database Schema
 
@@ -246,7 +256,8 @@ Click the **❌ Cancel Order** button on the order message
 - Price
 - Assigned user ID
 - Created by user ID
-- Status
+- Status (Pending/Done/Canceled)
+- Payment Received (boolean flag)
 - Notes
 - Timestamps
 
@@ -270,7 +281,7 @@ Click the **❌ Cancel Order** button on the order message
 Each order ID must be unique in the server. Use a different ID.
 
 ### Credits not updating
-Make sure you're changing the status to/from **Done**. Only Done status affects credits.
+Make sure you're changing the status to/from **Done**. Only Done status affects credits. Payment status does NOT affect credits.
 
 ### Can't find order
 - Check the order ID spelling

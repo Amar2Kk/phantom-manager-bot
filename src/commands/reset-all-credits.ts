@@ -9,6 +9,7 @@ import {
 } from 'discord.js';
 import { Command } from '../types';
 import { db } from '../utils/database';
+import { LogService } from '../services/log-service';
 
 export const resetAllCreditsCommand: Command = {
   data: new SlashCommandBuilder()
@@ -148,6 +149,19 @@ export const resetAllCreditsCommand: Command = {
             embeds: [successEmbed],
             components: [],
           });
+
+          // Update leaderboard
+          const { LeaderboardService } = await import('../services/leaderboard-service');
+          await LeaderboardService.updateLeaderboard(interaction.client, interaction.guildId!);
+
+          // Log to log channel
+          await LogService.logAllCreditsReset(
+            interaction.client,
+            interaction.guildId!,
+            result.count,
+            totalAmount,
+            interaction.user.id
+          );
 
           collector.stop();
         }

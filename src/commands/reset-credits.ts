@@ -1,6 +1,7 @@
 import { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { Command } from '../types';
 import { db } from '../utils/database';
+import { LogService } from '../services/log-service';
 
 export const resetCreditsCommand: Command = {
   data: new SlashCommandBuilder()
@@ -67,6 +68,19 @@ export const resetCreditsCommand: Command = {
           credits: 0,
         },
       });
+
+      // Update leaderboard
+      const { LeaderboardService } = await import('../services/leaderboard-service');
+      await LeaderboardService.updateLeaderboard(interaction.client, interaction.guildId);
+
+      // Log to log channel
+      await LogService.logCreditReset(
+        interaction.client,
+        interaction.guildId,
+        targetUser.id,
+        previousAmount,
+        interaction.user.id
+      );
 
       const embed = new EmbedBuilder()
         .setColor(0xFF6B6B)

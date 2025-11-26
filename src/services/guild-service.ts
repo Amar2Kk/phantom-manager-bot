@@ -17,31 +17,37 @@ export const GuildService = {
   },
 
   /**
-   * Update guild prefix
+   * Get guild by ID
    */
-  async updatePrefix(guildId: string, prefix: string) {
-    return await db.guild.update({
-      where: { id: guildId },
-      data: { prefix },
-    });
-  },
-
-  /**
-   * Get guild settings
-   */
-  async getSettings(guildId: string) {
+  async getGuild(guildId: string) {
     return await db.guild.findUnique({
       where: { id: guildId },
     });
   },
 
   /**
-   * Update guild settings
+   * Set leaderboard channel and message
    */
-  async updateSettings(guildId: string, settings: Record<string, unknown>) {
+  async setLeaderboard(guildId: string, channelId: string, messageId: string) {
     return await db.guild.update({
       where: { id: guildId },
-      data: { settings: settings as never },
+      data: {
+        leaderboardChannelId: channelId,
+        leaderboardMessageId: messageId,
+      },
+    });
+  },
+
+  /**
+   * Clear leaderboard configuration
+   */
+  async clearLeaderboard(guildId: string) {
+    return await db.guild.update({
+      where: { id: guildId },
+      data: {
+        leaderboardChannelId: null,
+        leaderboardMessageId: null,
+      },
     });
   },
 };

@@ -10,10 +10,10 @@ import { BotEvent } from '../types';
 import { OrderService } from '../services/order-service';
 import { OrderStatus } from '@prisma/client';
 import { logger } from '../utils/logger';
+import { LogService } from '../services/log-service';
 
 const statusMap = {
   [OrderStatus.PENDING]: { emoji: '⏳', label: 'Pending', color: 0xFFA500 },
-  [OrderStatus.PAYMENT_RECEIVED]: { emoji: '💵', label: 'Payment Received', color: 0x00BFFF },
   [OrderStatus.DONE]: { emoji: '✅', label: 'Done', color: 0x00FF00 },
   [OrderStatus.CANCELED]: { emoji: '❌', label: 'Canceled', color: 0xFF0000 },
 };
@@ -24,9 +24,9 @@ export const buttonInteractionEvent: BotEvent<Events.InteractionCreate> = {
     if (!interaction.isButton()) return;
     if (!interaction.guildId) return;
 
-    // Handle order status buttons
+    // Handle order buttons
     if (interaction.customId.startsWith('order_payment_')) {
-      await handleOrderStatusUpdate(interaction, OrderStatus.PAYMENT_RECEIVED);
+      await handlePaymentToggle(interaction);
     } else if (interaction.customId.startsWith('order_done_')) {
       await handleOrderStatusUpdate(interaction, OrderStatus.DONE);
     } else if (interaction.customId.startsWith('order_cancel_')) {
@@ -34,6 +34,55 @@ export const buttonInteractionEvent: BotEvent<Events.InteractionCreate> = {
     }
   },
 };
+
+async function handlePaymentToggle(interaction: any) {
+  const orderId = interaction.customId.split('_').slice(2).join('_');
+  
+  try {
+    await interaction.deferUpdate();
+
+    // Get current order
+    const order = await OrderService.getOrder(orderId, interaction.guildId);
+
+    if (!order) {
+      await interaction.followUp({
+        content: `❌ Order "${orderId}" not found!`,
+        ephemeral: true,
+      });
+      return;
+    }
+
+    // Toggle payment status
+    const updatedOrder = await OrderService.togglePaymentReceived(
+      orderId,
+      interaction.guildId,
+      interaction.user.id
+    );
+
+    // Update the embed
+    await updateOrderEmbed(interaction, updatedOrder);
+
+    logger.info(
+      `Order ${orderId} payment status toggled to ${updatedOrder.paymentReceived} by ${interaction.user.tag}`
+    );
+
+    // Log to log channel
+    await LogService.logPaymentToggle(
+      interaction.client,
+      interaction.guildId,
+      orderId,
+      updatedOrder.paymentReceived,
+      interaction.user.id
+    );
+
+  } catch (error) {
+    logger.error('Error toggling payment status:', error);
+    await interaction.followUp({
+      content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to update payment status'}`,
+      ephemeral: true,
+    });
+  }
+}
 
 async function handleOrderStatusUpdate(
   interaction: any,
@@ -66,100 +115,40 @@ async function handleOrderStatusUpdate(
       return;
     }
 
-    // Update order status
+    // Update order status (pass client for leaderboard update)
     const updatedOrder = await OrderService.updateOrderStatus(
       orderId,
       interaction.guildId,
       newStatus,
-      interaction.user.id
+      interaction.user.id,
+      interaction.client
     );
 
-    // Get user credits after update
-    const userCredits = await OrderService.getUserCredits(
-      order.assignedUserId,
-      interaction.guildId
-    );
-
-    const statusInfo = statusMap[newStatus];
-
-    // Create updated embed
-    const embed = new EmbedBuilder()
-      .setColor(statusInfo.color)
-      .setTitle('📦 Order Status Updated')
-      .addFields(
-        { name: '📋 Order ID', value: updatedOrder.orderId, inline: true },
-        { name: '🎮 Game', value: updatedOrder.game, inline: true },
-        { name: '💰 Price', value: `$${updatedOrder.price.toFixed(2)}`, inline: true },
-        { name: '👤 Assigned To', value: `<@${updatedOrder.assignedUserId}>`, inline: true },
-        { name: '📊 Status', value: `${statusInfo.emoji} ${statusInfo.label}`, inline: true },
-        { name: '🔄 Updated By', value: `<@${interaction.user.id}>`, inline: true }
-      )
-      .setTimestamp();
-
-    // Add credit notification
-    if (newStatus === OrderStatus.DONE && oldStatus !== OrderStatus.DONE) {
-      embed.setDescription(`✅ **+$${order.price.toFixed(2)}** added to <@${order.assignedUserId}>'s credits!`);
-      embed.addFields({ 
-        name: '💳 User Credits', 
-        value: `$${userCredits?.credits.toFixed(2) || '0.00'}` 
-      });
-    } else if (newStatus === OrderStatus.CANCELED && oldStatus === OrderStatus.DONE) {
-      embed.setDescription(`⚠️ **-$${order.price.toFixed(2)}** deducted from <@${order.assignedUserId}>'s credits!`);
-      embed.addFields({ 
-        name: '💳 User Credits', 
-        value: `$${userCredits?.credits.toFixed(2) || '0.00'}` 
-      });
-    }
-
-    if (updatedOrder.notes) {
-      embed.addFields({ name: '📝 Notes', value: updatedOrder.notes });
-    }
-
-    // Create new buttons based on current status
-    let buttons: ButtonBuilder[] = [];
-
-    // Payment Received button - always show unless already in that state
-    if (newStatus !== OrderStatus.PAYMENT_RECEIVED) {
-      buttons.push(
-        new ButtonBuilder()
-          .setCustomId(`order_payment_${orderId}`)
-          .setLabel('💵 Payment Received')
-          .setStyle(ButtonStyle.Primary)
-      );
-    }
-
-    // Done button - always show unless already in that state
-    if (newStatus !== OrderStatus.DONE) {
-      buttons.push(
-        new ButtonBuilder()
-          .setCustomId(`order_done_${orderId}`)
-          .setLabel('✅ Mark as Done')
-          .setStyle(ButtonStyle.Success)
-      );
-    }
-
-    // Cancel button - always show unless already in that state
-    if (newStatus !== OrderStatus.CANCELED) {
-      buttons.push(
-        new ButtonBuilder()
-          .setCustomId(`order_cancel_${orderId}`)
-          .setLabel('❌ Cancel Order')
-          .setStyle(ButtonStyle.Danger)
-      );
-    }
-
-    // Update footer based on status - no buttons are ever disabled
-    embed.setFooter({ text: 'Click buttons below to update status' });
-
-    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(buttons);
-
-    await interaction.editReply({ 
-      embeds: [embed], 
-      components: buttons.length > 0 ? [row] : [] 
-    });
+    // Update the embed
+    await updateOrderEmbed(interaction, updatedOrder, oldStatus);
 
     logger.info(
       `Order ${orderId} status updated from ${oldStatus} to ${newStatus} by ${interaction.user.tag}`
+    );
+
+    // Log to log channel with credit change info
+    let creditChange;
+    if (updatedOrder.status === OrderStatus.DONE && oldStatus !== OrderStatus.DONE) {
+      creditChange = { userId: order.assignedUserId, amount: order.price, type: 'added' as const };
+    } else if (updatedOrder.status === OrderStatus.CANCELED && oldStatus === OrderStatus.DONE) {
+      creditChange = { userId: order.assignedUserId, amount: order.price, type: 'deducted' as const };
+    } else if (oldStatus === OrderStatus.DONE && updatedOrder.status === OrderStatus.PENDING) {
+      creditChange = { userId: order.assignedUserId, amount: order.price, type: 'deducted' as const };
+    }
+
+    await LogService.logOrderStatusUpdate(
+      interaction.client,
+      interaction.guildId,
+      orderId,
+      oldStatus,
+      newStatus,
+      interaction.user.id,
+      creditChange
     );
 
   } catch (error) {
@@ -169,5 +158,100 @@ async function handleOrderStatusUpdate(
       ephemeral: true,
     });
   }
+}
+
+async function updateOrderEmbed(
+  interaction: any,
+  order: any,
+  oldStatus?: OrderStatus
+) {
+  const statusInfo = statusMap[order.status as OrderStatus];
+  
+  // Get user credits
+  const userCredits = await OrderService.getUserCredits(
+    order.assignedUserId,
+    interaction.guildId
+  );
+
+  // Create updated embed
+  const embed = new EmbedBuilder()
+    .setColor(statusInfo.color)
+    .setTitle('📦 Order Status')
+    .addFields(
+      { name: '📋 Order ID', value: order.orderId, inline: true },
+      { name: '🎮 Game', value: order.game, inline: true },
+      { name: '💰 Price', value: `$${order.price.toFixed(2)}`, inline: true },
+      { name: '👤 Assigned To', value: `<@${order.assignedUserId}>`, inline: true },
+      { name: '📊 Status', value: `${statusInfo.emoji} ${statusInfo.label}`, inline: true },
+      { name: '💵 Payment', value: order.paymentReceived ? '✅ Received' : '⏳ Pending', inline: true }
+    )
+    .setTimestamp();
+
+  // Add credit notification if status changed
+  if (oldStatus !== undefined) {
+    if (order.status === OrderStatus.DONE && oldStatus !== OrderStatus.DONE) {
+      embed.setDescription(`✅ **+$${order.price.toFixed(2)}** added to <@${order.assignedUserId}>'s credits!`);
+      embed.addFields({ 
+        name: '💳 User Credits', 
+        value: `$${userCredits?.credits.toFixed(2) || '0.00'}` 
+      });
+    } else if (order.status === OrderStatus.CANCELED && oldStatus === OrderStatus.DONE) {
+      embed.setDescription(`⚠️ **-$${order.price.toFixed(2)}** deducted from <@${order.assignedUserId}>'s credits!`);
+      embed.addFields({ 
+        name: '💳 User Credits', 
+        value: `$${userCredits?.credits.toFixed(2) || '0.00'}` 
+      });
+    } else if (oldStatus === OrderStatus.DONE && order.status === OrderStatus.PENDING) {
+      embed.setDescription(`⚠️ **-$${order.price.toFixed(2)}** deducted from <@${order.assignedUserId}>'s credits!`);
+      embed.addFields({ 
+        name: '💳 User Credits', 
+        value: `$${userCredits?.credits.toFixed(2) || '0.00'}` 
+      });
+    }
+  }
+
+  if (order.notes) {
+    embed.addFields({ name: '📝 Notes', value: order.notes });
+  }
+
+  // Create buttons
+  const buttons: ButtonBuilder[] = [];
+
+  // Payment button - changes style based on payment status
+  buttons.push(
+    new ButtonBuilder()
+      .setCustomId(`order_payment_${order.orderId}`)
+      .setLabel(order.paymentReceived ? '💵 Payment Received' : '💵 Mark Payment Received')
+      .setStyle(order.paymentReceived ? ButtonStyle.Secondary : ButtonStyle.Primary)
+  );
+
+  // Done button - hide if already done
+  if (order.status !== OrderStatus.DONE) {
+    buttons.push(
+      new ButtonBuilder()
+        .setCustomId(`order_done_${order.orderId}`)
+        .setLabel('✅ Mark as Done')
+        .setStyle(ButtonStyle.Success)
+    );
+  }
+
+  // Cancel button - hide if already canceled
+  if (order.status !== OrderStatus.CANCELED) {
+    buttons.push(
+      new ButtonBuilder()
+        .setCustomId(`order_cancel_${order.orderId}`)
+        .setLabel('❌ Cancel Order')
+        .setStyle(ButtonStyle.Danger)
+    );
+  }
+
+  embed.setFooter({ text: 'Use buttons to update order status and payment' });
+
+  const row = new ActionRowBuilder<ButtonBuilder>().addComponents(buttons);
+
+  await interaction.editReply({ 
+    embeds: [embed], 
+    components: [row] 
+  });
 }
 

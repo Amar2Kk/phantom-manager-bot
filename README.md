@@ -9,10 +9,16 @@ A Discord bot built with discord.js and TypeScript.
 -   ✅ **Shop Order Management System**
     -   Create and track orders with interactive buttons
     -   Automatic credit calculation
-    -   Order status workflow (Pending → Payment Received → Done/Canceled)
+    -   Order status workflow (Pending → Done/Canceled)
+    -   Payment tracking (separate from order status)
     -   User credits and earnings tracking
-    -   Credits leaderboard
+    -   Live credits leaderboard with auto-updates
     -   Admin credit management
+-   ✅ **Action Logging System**
+    -   Configurable log channel for all bot actions
+    -   Logs order creation and status updates
+    -   Logs payment status changes
+    -   Logs credit resets and modifications
 -   ✅ Modular command structure
 -   ✅ Easy to extend with new commands
 -   ✅ Development mode with hot reload
@@ -133,6 +139,10 @@ pnpm start
 -   `/credits-leaderboard` - View credits leaderboard
 
 ### Admin Commands
+-   `/set-leaderboard` - Set channel for live credits leaderboard (Admin only)
+-   `/remove-leaderboard` - Remove live credits leaderboard (Admin only)
+-   `/set-log-channel` - Set channel for bot action logs (Admin only)
+-   `/remove-log-channel` - Remove bot action logs (Admin only)
 -   `/reset-credits` - Reset a specific user's credits (Admin only)
 -   `/reset-all-credits` - Reset ALL users' credits (Admin only)
 
@@ -163,7 +173,9 @@ phantom-manager-bot/
 │   │   └── buttonInteraction.ts
 │   ├── services/       # Business logic
 │   │   ├── guild-service.ts
-│   │   └── order-service.ts
+│   │   ├── order-service.ts
+│   │   ├── leaderboard-service.ts
+│   │   └── log-service.ts
 │   ├── utils/          # Utility functions
 │   │   ├── logger.ts
 │   │   └── database.ts

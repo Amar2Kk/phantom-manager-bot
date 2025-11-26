@@ -15,6 +15,10 @@ import { creditsLeaderboardCommand } from './commands/credits-leaderboard';
 import { totalCommand } from './commands/total';
 import { resetCreditsCommand } from './commands/reset-credits';
 import { resetAllCreditsCommand } from './commands/reset-all-credits';
+import { setLeaderboardCommand } from './commands/set-leaderboard';
+import { removeLeaderboardCommand } from './commands/remove-leaderboard';
+import { setLogChannelCommand } from './commands/set-log-channel';
+import { removeLogChannelCommand } from './commands/remove-log-channel';
 
 // Import events
 import { readyEvent } from './events/ready';
@@ -52,7 +56,11 @@ export function createBot(): Client {
     creditsLeaderboardCommand,
     totalCommand,
     resetCreditsCommand,
-    resetAllCreditsCommand
+    resetAllCreditsCommand,
+    setLeaderboardCommand,
+    removeLeaderboardCommand,
+    setLogChannelCommand,
+    removeLogChannelCommand
   ];
   
   for (const command of commands) {

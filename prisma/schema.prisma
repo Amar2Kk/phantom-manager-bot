@@ -11,104 +11,15 @@ datasource db {
 
 // Guild (Discord Server) settings
 model Guild {
-  id        String   @id // Discord Guild ID
-  name      String
-  prefix    String   @default("!")
-  settings  Json? // Flexible settings storage
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  users User[]
+  id                      String   @id // Discord Guild ID
+  name                    String
+  leaderboardChannelId    String?  // Channel for live credits leaderboard
+  leaderboardMessageId    String?  // Message ID of the leaderboard
+  logChannelId            String?  // Channel for bot action logs
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 
   @@map("guilds")
-}
-
-// User data across all guilds
-model User {
-  id        String   @id // Discord User ID
-  username  String
-  globalXp  Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  guilds        Guild[]
-  guildData     GuildUser[]
-  commandUsages CommandUsage[]
-
-  @@map("users")
-}
-
-// User data specific to each guild
-model GuildUser {
-  id        String   @id @default(cuid())
-  userId    String
-  guildId   String
-  xp        Int      @default(0)
-  level     Int      @default(0)
-  messages  Int      @default(0)
-  warnings  Int      @default(0)
-  settings  Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, guildId])
-  @@index([guildId])
-  @@index([userId])
-  @@map("guild_users")
-}
-
-// Track command usage for analytics
-model CommandUsage {
-  id          String   @id @default(cuid())
-  commandName String
-  userId      String
-  guildId     String?
-  success     Boolean  @default(true)
-  error       String?
-  executedAt  DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([commandName])
-  @@index([userId])
-  @@index([guildId])
-  @@index([executedAt])
-  @@map("command_usage")
-}
-
-// Store custom bot responses or messages
-model CustomResponse {
-  id        String   @id @default(cuid())
-  guildId   String
-  trigger   String
-  response  String
-  isRegex   Boolean  @default(false)
-  enabled   Boolean  @default(true)
-  createdBy String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([guildId])
-  @@map("custom_responses")
-}
-
-// Store moderation logs
-model ModerationLog {
-  id        String   @id @default(cuid())
-  guildId   String
-  userId    String // User being moderated
-  moderator String // Moderator ID
-  action    String // ban, kick, warn, mute, etc.
-  reason    String?
-  duration  Int? // Duration in minutes for temporary actions
-  createdAt DateTime @default(now())
-
-  @@index([guildId])
-  @@index([userId])
-  @@index([createdAt])
-  @@map("moderation_logs")
 }
 
 // Shop Orders
@@ -121,6 +32,7 @@ model Order {
   assignedUserId  String // User assigned to complete the order
   createdBy       String // Discord user ID who created the order
   status          OrderStatus @default(PENDING)
+  paymentReceived Boolean     @default(false) // Whether payment has been received
   completedAt     DateTime?
   canceledAt      DateTime?
   notes           String?
@@ -136,8 +48,7 @@ model Order {
 }
 
 enum OrderStatus {
-  PENDING // Payment not received yet
-  PAYMENT_RECEIVED // Payment received, work in progress
+  PENDING // Order pending
   DONE // Order completed
   CANCELED // Order canceled
 }

@@ -1,5 +1,6 @@
 import { db } from '../utils/database';
 import { OrderStatus } from '@prisma/client';
+import { Client } from 'discord.js';
 
 export const OrderService = {
   /**
@@ -65,7 +66,8 @@ export const OrderService = {
     orderId: string,
     guildId: string,
     newStatus: OrderStatus,
-    updatedBy: string
+    updatedBy: string,
+    client?: Client
   ) {
     const order = await db.order.findUnique({
       where: {
@@ -113,8 +115,8 @@ export const OrderService = {
           },
         },
       });
-    } else if (oldStatus === OrderStatus.DONE && newStatus !== OrderStatus.DONE && newStatus !== OrderStatus.CANCELED) {
-      // Deduct credits if moving from DONE to another status (except CANCELED which is handled above)
+    } else if (oldStatus === OrderStatus.DONE && newStatus === OrderStatus.PENDING) {
+      // Deduct credits if moving from DONE back to PENDING
       await db.userCredit.update({
         where: {
           userId_guildId: {
@@ -145,7 +147,7 @@ export const OrderService = {
       updateData.canceledAt = new Date();
     }
 
-    return await db.order.update({
+    const updatedOrder = await db.order.update({
       where: {
         orderId_guildId: {
           orderId,
@@ -153,6 +155,49 @@ export const OrderService = {
         },
       },
       data: updateData,
+    });
+
+    // Update leaderboard if client is provided
+    if (client) {
+      // Import dynamically to avoid circular dependency
+      const { LeaderboardService } = await import('./leaderboard-service');
+      await LeaderboardService.updateLeaderboard(client, guildId);
+    }
+
+    return updatedOrder;
+  },
+
+  /**
+   * Toggle payment received status
+   */
+  async togglePaymentReceived(
+    orderId: string,
+    guildId: string,
+    updatedBy: string
+  ) {
+    const order = await db.order.findUnique({
+      where: {
+        orderId_guildId: {
+          orderId,
+          guildId,
+        },
+      },
+    });
+
+    if (!order) {
+      throw new Error(`Order "${orderId}" not found!`);
+    }
+
+    return await db.order.update({
+      where: {
+        orderId_guildId: {
+          orderId,
+          guildId,
+        },
+      },
+      data: {
+        paymentReceived: !order.paymentReceived,
+      },
     });
   },
 
@@ -231,7 +276,7 @@ export const OrderService = {
         where: { assignedUserId: userId, guildId, status: OrderStatus.PENDING },
       }),
       db.order.count({
-        where: { assignedUserId: userId, guildId, status: OrderStatus.PAYMENT_RECEIVED },
+        where: { assignedUserId: userId, guildId, paymentReceived: true },
       }),
       db.order.count({
         where: { assignedUserId: userId, guildId, status: OrderStatus.CANCELED },

@@ -10,10 +10,10 @@ import { BotEvent } from '../types';
 import { OrderService } from '../services/order-service';
 import { OrderStatus } from '@prisma/client';
 import { logger } from '../utils/logger';
+import { LogService } from '../services/log-service';
 
 const statusMap = {
   [OrderStatus.PENDING]: { emoji: '⏳', label: 'Pending', color: 0xFFA500 },
-  [OrderStatus.PAYMENT_RECEIVED]: { emoji: '💵', label: 'Payment Received', color: 0x00BFFF },
   [OrderStatus.DONE]: { emoji: '✅', label: 'Done', color: 0x00FF00 },
   [OrderStatus.CANCELED]: { emoji: '❌', label: 'Canceled', color: 0xFF0000 },
 };
@@ -66,7 +66,7 @@ export const modalSubmitEvent: BotEvent<Events.InteractionCreate> = {
         // Create status buttons
         const paymentButton = new ButtonBuilder()
           .setCustomId(`order_payment_${orderId}`)
-          .setLabel('💵 Payment Received')
+          .setLabel('💵 Mark Payment Received')
           .setStyle(ButtonStyle.Primary);
 
         const doneButton = new ButtonBuilder()
@@ -92,9 +92,9 @@ export const modalSubmitEvent: BotEvent<Events.InteractionCreate> = {
             { name: '💰 Price', value: `$${order.price.toFixed(2)}`, inline: true },
             { name: '👤 Assigned To', value: `<@${order.assignedUserId}>`, inline: true },
             { name: '📊 Status', value: '⏳ Pending', inline: true },
-            { name: '👨‍💼 Created By', value: `<@${order.createdBy}>`, inline: true }
+            { name: '💵 Payment', value: '⏳ Pending', inline: true }
           )
-          .setFooter({ text: 'Click buttons below to update status' })
+          .setFooter({ text: 'Use buttons to update order status and payment' })
           .setTimestamp();
 
         if (notes) {
@@ -103,6 +103,17 @@ export const modalSubmitEvent: BotEvent<Events.InteractionCreate> = {
 
         await interaction.reply({ embeds: [embed], components: [row] });
         logger.info(`Order ${orderId} created by ${interaction.user.tag} in guild ${interaction.guildId}`);
+
+        // Log to log channel
+        await LogService.logOrderCreated(
+          interaction.client,
+          interaction.guildId,
+          orderId,
+          game,
+          price,
+          assignedUserId,
+          interaction.user.id
+        );
 
       } catch (error) {
         logger.error('Error creating order:', error);

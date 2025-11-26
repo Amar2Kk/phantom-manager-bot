@@ -5,7 +5,6 @@ import { OrderStatus } from '@prisma/client';
 
 const statusMap = {
   [OrderStatus.PENDING]: { emoji: '⏳', label: 'Pending', color: 0xFFA500 },
-  [OrderStatus.PAYMENT_RECEIVED]: { emoji: '💵', label: 'Payment Received', color: 0x00BFFF },
   [OrderStatus.DONE]: { emoji: '✅', label: 'Done', color: 0x00FF00 },
   [OrderStatus.CANCELED]: { emoji: '❌', label: 'Canceled', color: 0xFF0000 },
 };
@@ -27,7 +26,6 @@ export const orderStatusCommand: Command = {
         .setRequired(false)
         .addChoices(
           { name: '⏳ Pending', value: OrderStatus.PENDING },
-          { name: '💵 Payment Received', value: OrderStatus.PAYMENT_RECEIVED },
           { name: '✅ Done', value: OrderStatus.DONE },
           { name: '❌ Canceled', value: OrderStatus.CANCELED }
         )
@@ -67,6 +65,7 @@ export const orderStatusCommand: Command = {
             { name: '🎮 Game', value: order.game, inline: true },
             { name: '💰 Price', value: `$${order.price.toFixed(2)}`, inline: true },
             { name: '📊 Status', value: `${statusInfo.emoji} ${statusInfo.label}`, inline: true },
+            { name: '💵 Payment', value: order.paymentReceived ? '✅ Received' : '⏳ Pending', inline: true },
             { name: '👤 Assigned To', value: `<@${order.assignedUserId}>`, inline: true },
             { name: '👨‍💼 Created By', value: `<@${order.createdBy}>`, inline: true },
             { name: '📅 Created', value: `<t:${Math.floor(order.createdAt.getTime() / 1000)}:R>`, inline: true }

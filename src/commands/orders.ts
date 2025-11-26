@@ -5,7 +5,6 @@ import { OrderStatus } from '@prisma/client';
 
 const statusEmoji = {
   [OrderStatus.PENDING]: '⏳',
-  [OrderStatus.PAYMENT_RECEIVED]: '💵',
   [OrderStatus.DONE]: '✅',
   [OrderStatus.CANCELED]: '❌',
 };
@@ -22,7 +21,6 @@ export const ordersCommand: Command = {
         .addChoices(
           { name: 'All', value: 'all' },
           { name: '⏳ Pending', value: OrderStatus.PENDING },
-          { name: '💵 Payment Received', value: OrderStatus.PAYMENT_RECEIVED },
           { name: '✅ Done', value: OrderStatus.DONE },
           { name: '❌ Canceled', value: OrderStatus.CANCELED }
         )
@@ -75,11 +73,12 @@ export const ordersCommand: Command = {
         .setDescription(
           orders.map((order, index) => {
             const status = statusEmoji[order.status];
-            return `**${index + 1}.** \`${order.orderId}\` ${status}\n` +
+            const payment = order.paymentReceived ? '💵' : '⏳';
+            return `**${index + 1}.** \`${order.orderId}\` ${status} ${payment}\n` +
                    `   🎮 ${order.game} | 💰 $${order.price.toFixed(2)} | 👤 <@${order.assignedUserId}>`;
           }).join('\n\n')
         )
-        .setFooter({ text: `Showing ${orders.length} order(s)` })
+        .setFooter({ text: `Showing ${orders.length} order(s) | 💵 = Payment Received` })
         .setTimestamp();
 
       await interaction.editReply({ embeds: [embed] });
