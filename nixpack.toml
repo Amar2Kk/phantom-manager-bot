@@ -1,0 +1,11 @@
+[nixpacks]
+node_version = "22"
+
+[phases.build]
+cmds = [
+  "pnpm install",
+  "pnpm run build"
+]
+
+[phases.start]
+cmd = "pnpm run start"
