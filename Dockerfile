@@ -14,8 +14,8 @@ COPY prisma ./prisma
 # Install dependencies
 RUN pnpm install --frozen-lockfile
 
-# Generate Prisma Client (no DATABASE_URL needed with adapter approach)
-RUN pnpm prisma generate --no-engine
+# Generate Prisma Client
+RUN pnpm prisma generate
 
 # Copy source code
 COPY . .
@@ -41,8 +41,8 @@ COPY prisma ./prisma
 # Install ALL dependencies temporarily (needed for prisma)
 RUN pnpm install --frozen-lockfile
 
-# Generate Prisma Client in production stage (no DATABASE_URL needed with adapter approach)
-RUN pnpm prisma generate --no-engine
+# Generate Prisma Client in production stage
+RUN pnpm prisma generate
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
