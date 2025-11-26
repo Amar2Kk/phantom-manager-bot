@@ -9,13 +9,16 @@
         "start": "node dist/index.js",
         "build": "tsc",
         "deploy": "tsx src/deploy-commands.ts",
+        "deploy:commands": "tsx src/deploy-commands.ts",
         "lint": "eslint src/**/*.ts",
         "clean": "rm -rf dist",
         "db:generate": "prisma generate",
         "db:push": "prisma db push",
         "db:migrate": "prisma migrate dev",
+        "db:migrate:deploy": "prisma migrate deploy",
         "db:studio": "prisma studio",
-        "db:seed": "tsx prisma/seed.ts"
+        "db:seed": "tsx prisma/seed.ts",
+        "postinstall": "prisma generate"
     },
     "keywords": [
         "discord",
