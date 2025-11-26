@@ -15,9 +15,8 @@ COPY prisma.config.ts ./
 # Install dependencies
 RUN pnpm install --frozen-lockfile
 
-# Generate Prisma Client (set dummy DATABASE_URL for build)
-ENV DATABASE_URL="postgresql://user:pass@localhost:5432/db"
-RUN pnpm prisma generate
+# Generate Prisma Client (set dummy DATABASE_URL for build only)
+RUN DATABASE_URL="postgresql://user:pass@localhost:5432/db" pnpm prisma generate
 
 # Copy source code
 COPY . .
@@ -44,9 +43,8 @@ COPY prisma.config.ts ./
 # Install ALL dependencies temporarily (needed for prisma)
 RUN pnpm install --frozen-lockfile
 
-# Generate Prisma Client in production stage (set dummy DATABASE_URL for build)
-ENV DATABASE_URL="postgresql://user:pass@localhost:5432/db"
-RUN pnpm prisma generate
+# Generate Prisma Client in production stage (set dummy DATABASE_URL for build only)
+RUN DATABASE_URL="postgresql://user:pass@localhost:5432/db" pnpm prisma generate
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
