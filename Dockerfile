@@ -56,5 +56,5 @@ ENV NODE_ENV=production
 # The image size increase is minimal compared to the functionality benefit
 
 # Create a startup script that will run migrations and start the bot
-CMD sh -c "echo 'Running database migrations...' && pnpm prisma migrate deploy && echo 'Starting bot...' && node dist/index.js"
+CMD sh -c "echo 'Running database migrations...' && pnpm prisma migrate resolve --rolled-back 20251126142754_init || true && pnpm prisma migrate deploy && echo 'Starting bot...' && node dist/index.js"
 
