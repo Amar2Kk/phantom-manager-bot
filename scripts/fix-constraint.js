@@ -9,6 +9,15 @@ async function fixConstraint() {
   try {
     console.log('🔧 Checking and fixing database constraint...');
     
+    // List ALL constraints on the orders table
+    const allConstraints = await pool.query(`
+      SELECT constraint_name, constraint_type
+      FROM information_schema.table_constraints 
+      WHERE table_name = 'orders';
+    `);
+    
+    console.log('📋 Current constraints on orders table:', allConstraints.rows);
+    
     // Check if the unique constraint exists
     const checkResult = await pool.query(`
       SELECT constraint_name 
@@ -41,7 +50,33 @@ async function fixConstraint() {
       }
     } else {
       console.log('✅ Constraint already removed or does not exist');
+      
+      // Check for the index
+      const indexCheck = await pool.query(`
+        SELECT indexname 
+        FROM pg_indexes 
+        WHERE tablename = 'orders' 
+          AND indexname = 'orders_orderId_guildId_idx';
+      `);
+      
+      if (indexCheck.rows.length === 0) {
+        console.log('📝 Creating regular index...');
+        await pool.query(`CREATE INDEX "orders_orderId_guildId_idx" ON "orders"("orderId", "guildId");`);
+        console.log('✅ Regular index created');
+      }
     }
+    
+    // List all indexes on the orders table
+    const allIndexes = await pool.query(`
+      SELECT indexname, indexdef
+      FROM pg_indexes 
+      WHERE tablename = 'orders';
+    `);
+    
+    console.log('📋 Current indexes on orders table:');
+    allIndexes.rows.forEach(idx => {
+      console.log(`  - ${idx.indexname}: ${idx.indexdef}`);
+    });
     
   } catch (error) {
     console.error('❌ Error fixing constraint:', error);
