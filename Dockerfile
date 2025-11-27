@@ -49,12 +49,21 @@ RUN pnpm prisma generate
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
 
+# Copy scripts
+COPY scripts ./scripts
+
 # Set environment to production
 ENV NODE_ENV=production
 
 # Note: We keep all dependencies (including prisma) for migrations
 # The image size increase is minimal compared to the functionality benefit
 
-# Create a startup script that will run migrations and start the bot
-CMD sh -c "echo 'Running database migrations...' && pnpm prisma migrate resolve --rolled-back 20251126142754_init || true && pnpm prisma migrate deploy && echo 'Starting bot...' && node dist/index.js"
+# Create a startup script that will resolve failed migrations, run migrations, and start the bot
+CMD sh -c "echo '🔧 Resolving any failed migrations...' && \
+  (pnpm prisma migrate resolve --rolled-back 20251126142754_init 2>/dev/null || true) && \
+  (pnpm prisma migrate resolve --applied 20251127113159_remove_order_id_unique_constraint 2>/dev/null || true) && \
+  echo '🔄 Running database migrations...' && \
+  pnpm prisma migrate deploy && \
+  echo '🚀 Starting bot...' && \
+  node dist/index.js"
 
