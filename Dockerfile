@@ -58,8 +58,10 @@ ENV NODE_ENV=production
 # Note: We keep all dependencies (including prisma) for migrations
 # The image size increase is minimal compared to the functionality benefit
 
-# Create a startup script that will resolve failed migrations, run migrations, and start the bot
-CMD sh -c "echo '🔧 Resolving any failed migrations...' && \
+# Create a startup script that will fix the constraint, resolve migrations, and start the bot
+CMD sh -c "echo '🔧 Fixing database constraints...' && \
+  node scripts/fix-constraint.js && \
+  echo '🔧 Resolving any failed migrations...' && \
   (pnpm prisma migrate resolve --rolled-back 20251126142754_init 2>/dev/null || true) && \
   (pnpm prisma migrate resolve --applied 20251127113159_remove_order_id_unique_constraint 2>/dev/null || true) && \
   echo '🔄 Running database migrations...' && \
