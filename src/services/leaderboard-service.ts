@@ -8,6 +8,8 @@ export const LeaderboardService = {
    */
   async updateLeaderboard(client: Client, guildId: string): Promise<void> {
     try {
+      logger.info(`Attempting to update leaderboard for guild ${guildId}`);
+      
       // Get guild settings
       const guild = await db.guild.findUnique({
         where: { id: guildId },
@@ -18,12 +20,16 @@ export const LeaderboardService = {
         return;
       }
 
+      logger.info(`Found leaderboard channel ID: ${guild.leaderboardChannelId} for guild ${guildId}`);
+
       // Get the channel
       const channel = await client.channels.fetch(guild.leaderboardChannelId);
       if (!channel || !channel.isTextBased()) {
         logger.error(`Invalid leaderboard channel for guild ${guildId}`);
         return;
       }
+
+      logger.info(`Successfully fetched channel for guild ${guildId}`)
 
       // Get top users by credits
       const topUsers = await db.userCredit.findMany({
@@ -97,31 +103,36 @@ export const LeaderboardService = {
 
       // Update or create message
       if (guild.leaderboardMessageId) {
+        logger.info(`Attempting to update existing message ${guild.leaderboardMessageId} for guild ${guildId}`);
         try {
           const message = await textChannel.messages.fetch(guild.leaderboardMessageId);
           await message.edit({ embeds: [embed] });
-          logger.info(`Updated leaderboard message in guild ${guildId}`);
+          logger.info(`✅ Successfully updated leaderboard message in guild ${guildId}`);
         } catch (error) {
           // Message not found, create new one
-          logger.warn(`Leaderboard message not found, creating new one for guild ${guildId}`);
+          logger.warn(`Leaderboard message not found (${error instanceof Error ? error.message : 'unknown error'}), creating new one for guild ${guildId}`);
           const newMessage = await textChannel.send({ embeds: [embed] });
           await db.guild.update({
             where: { id: guildId },
             data: { leaderboardMessageId: newMessage.id },
           });
-          logger.info(`Created new leaderboard message in guild ${guildId}`);
+          logger.info(`✅ Created new leaderboard message ${newMessage.id} in guild ${guildId}`);
         }
       } else {
+        logger.info(`No existing message ID, creating new leaderboard message for guild ${guildId}`);
         // Create new message
         const newMessage = await textChannel.send({ embeds: [embed] });
         await db.guild.update({
           where: { id: guildId },
           data: { leaderboardMessageId: newMessage.id },
         });
-        logger.info(`Created leaderboard message in guild ${guildId}`);
+        logger.info(`✅ Created leaderboard message ${newMessage.id} in guild ${guildId}`);
       }
     } catch (error) {
-      logger.error(`Error updating leaderboard for guild ${guildId}:`, error);
+      logger.error(`❌ Error updating leaderboard for guild ${guildId}:`, error);
+      if (error instanceof Error) {
+        logger.error(`Error stack: ${error.stack}`);
+      }
     }
   },
 

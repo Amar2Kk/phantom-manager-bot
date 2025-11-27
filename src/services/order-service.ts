@@ -1,6 +1,7 @@
 import { db } from '../utils/database.js';
 import { OrderStatus } from '@prisma/client';
 import { Client } from 'discord.js';
+import { logger } from '../utils/logger.js';
 
 export const OrderService = {
   /**
@@ -148,6 +149,8 @@ export const OrderService = {
       // Import dynamically to avoid circular dependency
       const { LeaderboardService } = await import('./leaderboard-service.js');
       await LeaderboardService.updateLeaderboard(client, guildId);
+    } else {
+      logger.warn(`Client not provided to updateOrderStatus, skipping leaderboard update for guild ${guildId}`);
     }
 
     return updatedOrder;
