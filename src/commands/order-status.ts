@@ -95,13 +95,13 @@ export const orderStatusCommand: Command = {
         return;
       }
 
-      // Update status
+      // Update status using internal database ID
       const oldStatus = order.status;
-      const updatedOrder = await OrderService.updateOrderStatus(
-        orderId,
-        interaction.guildId,
+      const updatedOrder = await OrderService.updateOrderStatusById(
+        order.id,
         newStatus,
-        interaction.user.id
+        interaction.user.id,
+        interaction.client
       );
 
       const oldStatusInfo = statusMap[oldStatus];

@@ -36,26 +36,25 @@ export const buttonInteractionEvent: BotEvent<Events.InteractionCreate> = {
 };
 
 async function handlePaymentToggle(interaction: any) {
-  const orderId = interaction.customId.split('_').slice(2).join('_');
+  const internalId = interaction.customId.split('_').slice(2).join('_');
   
   try {
     await interaction.deferUpdate();
 
-    // Get current order
-    const order = await OrderService.getOrder(orderId, interaction.guildId);
+    // Get current order by internal ID
+    const order = await OrderService.getOrderById(internalId);
 
     if (!order) {
       await interaction.followUp({
-        content: `❌ Order "${orderId}" not found!`,
+        content: `❌ Order not found!`,
         flags: ['Ephemeral'],
       });
       return;
     }
 
     // Toggle payment status
-    const updatedOrder = await OrderService.togglePaymentReceived(
-      orderId,
-      interaction.guildId,
+    const updatedOrder = await OrderService.togglePaymentReceivedById(
+      internalId,
       interaction.user.id
     );
 
@@ -63,14 +62,14 @@ async function handlePaymentToggle(interaction: any) {
     await updateOrderEmbed(interaction, updatedOrder);
 
     logger.info(
-      `Order ${orderId} payment status toggled to ${updatedOrder.paymentReceived} by ${interaction.user.tag}`
+      `Order ${updatedOrder.orderId} (ID: ${internalId}) payment status toggled to ${updatedOrder.paymentReceived} by ${interaction.user.tag}`
     );
 
     // Log to log channel
     await LogService.logPaymentToggle(
       interaction.client,
       interaction.guildId,
-      orderId,
+      updatedOrder.orderId,
       updatedOrder.paymentReceived,
       interaction.user.id
     );
@@ -88,15 +87,15 @@ async function handleOrderStatusUpdate(
   interaction: any,
   newStatus: OrderStatus
 ) {
-  const orderId = interaction.customId.split('_').slice(2).join('_');
+  const internalId = interaction.customId.split('_').slice(2).join('_');
   
   try {
-    // Get current order
-    const order = await OrderService.getOrder(orderId, interaction.guildId);
+    // Get current order by internal ID
+    const order = await OrderService.getOrderById(internalId);
 
     if (!order) {
       await interaction.reply({
-        content: `❌ Order "${orderId}" not found!`,
+        content: `❌ Order not found!`,
         flags: ['Ephemeral'],
       });
       return;
@@ -116,9 +115,8 @@ async function handleOrderStatusUpdate(
     // If order is being canceled, delete the message immediately
     if (newStatus === OrderStatus.CANCELED) {
       // Update order status first (pass client for leaderboard update)
-      await OrderService.updateOrderStatus(
-        orderId,
-        interaction.guildId,
+      await OrderService.updateOrderStatusById(
+        internalId,
         newStatus,
         interaction.user.id,
         interaction.client
@@ -126,7 +124,7 @@ async function handleOrderStatusUpdate(
 
       // Log the status update
       logger.info(
-        `Order ${orderId} status updated from ${oldStatus} to ${newStatus} by ${interaction.user.tag}`
+        `Order ${order.orderId} (ID: ${internalId}) status updated from ${oldStatus} to ${newStatus} by ${interaction.user.tag}`
       );
 
       // Log to log channel with credit change info
@@ -138,7 +136,7 @@ async function handleOrderStatusUpdate(
       await LogService.logOrderStatusUpdate(
         interaction.client,
         interaction.guildId,
-        orderId,
+        order.orderId,
         oldStatus,
         newStatus,
         interaction.user.id,
@@ -148,14 +146,14 @@ async function handleOrderStatusUpdate(
       // Delete the message
       try {
         await interaction.message.delete();
-        logger.info(`Deleted canceled order message for ${orderId}`);
+        logger.info(`Deleted canceled order message for ${order.orderId} (ID: ${internalId})`);
       } catch (error) {
         logger.error('Error deleting order message:', error);
       }
 
       // Send confirmation
       await interaction.reply({
-        content: `✅ Order \`${orderId}\` has been canceled and removed.`,
+        content: `✅ Order \`${order.orderId}\` has been canceled and removed.`,
         flags: ['Ephemeral'],
       });
 
@@ -166,9 +164,8 @@ async function handleOrderStatusUpdate(
     await interaction.deferUpdate();
 
     // Update order status (pass client for leaderboard update)
-    const updatedOrder = await OrderService.updateOrderStatus(
-      orderId,
-      interaction.guildId,
+    const updatedOrder = await OrderService.updateOrderStatusById(
+      internalId,
       newStatus,
       interaction.user.id,
       interaction.client
@@ -178,7 +175,7 @@ async function handleOrderStatusUpdate(
     await updateOrderEmbed(interaction, updatedOrder, oldStatus);
 
     logger.info(
-      `Order ${orderId} status updated from ${oldStatus} to ${newStatus} by ${interaction.user.tag}`
+      `Order ${updatedOrder.orderId} (ID: ${internalId}) status updated from ${oldStatus} to ${newStatus} by ${interaction.user.tag}`
     );
 
     // Log to log channel with credit change info
@@ -194,7 +191,7 @@ async function handleOrderStatusUpdate(
     await LogService.logOrderStatusUpdate(
       interaction.client,
       interaction.guildId,
-      orderId,
+      updatedOrder.orderId,
       oldStatus,
       newStatus,
       interaction.user.id,
@@ -264,14 +261,14 @@ async function updateOrderEmbed(
     embed.addFields({ name: '📝 Notes', value: order.notes });
   }
 
-  // Create buttons
+  // Create buttons using internal database ID
   const buttons: ButtonBuilder[] = [];
   const isCanceled = order.status === OrderStatus.CANCELED;
 
   // Payment button - disabled if order is canceled
   buttons.push(
     new ButtonBuilder()
-      .setCustomId(`order_payment_${order.orderId}`)
+      .setCustomId(`order_payment_${order.id}`)
       .setLabel(order.paymentReceived ? '💵 Payment Received' : '💵 Mark Payment Received')
       .setStyle(order.paymentReceived ? ButtonStyle.Secondary : ButtonStyle.Primary)
       .setDisabled(isCanceled)
@@ -280,7 +277,7 @@ async function updateOrderEmbed(
   // Done button - disabled if order is canceled or already done
   buttons.push(
     new ButtonBuilder()
-      .setCustomId(`order_done_${order.orderId}`)
+      .setCustomId(`order_done_${order.id}`)
       .setLabel('✅ Mark as Done')
       .setStyle(order.status === OrderStatus.DONE ? ButtonStyle.Secondary : ButtonStyle.Success)
       .setDisabled(isCanceled || order.status === OrderStatus.DONE)
@@ -289,7 +286,7 @@ async function updateOrderEmbed(
   // Cancel button - disabled if order is already canceled
   buttons.push(
     new ButtonBuilder()
-      .setCustomId(`order_cancel_${order.orderId}`)
+      .setCustomId(`order_cancel_${order.id}`)
       .setLabel('❌ Cancel Order')
       .setStyle(order.status === OrderStatus.CANCELED ? ButtonStyle.Secondary : ButtonStyle.Danger)
       .setDisabled(isCanceled)

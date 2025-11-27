@@ -26,7 +26,7 @@ model Guild {
 // Shop Orders
 model Order {
   id              String      @id @default(cuid())
-  orderId         String // Custom order ID from user
+  orderId         String // Custom order ID from user (can have duplicates)
   guildId         String
   game            String // Game name
   price           Float // Order price
@@ -42,12 +42,12 @@ model Order {
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
-  @@unique([orderId, guildId])
   @@index([guildId])
   @@index([assignedUserId])
   @@index([status])
   @@index([archived])
   @@index([createdAt])
+  @@index([orderId, guildId]) // Index for faster lookups, but not unique
   @@map("orders")
 }
 

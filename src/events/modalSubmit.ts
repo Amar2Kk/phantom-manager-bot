@@ -63,19 +63,19 @@ export const modalSubmitEvent: BotEvent<Events.InteractionCreate> = {
           notes,
         });
 
-        // Create status buttons
+        // Create status buttons using internal database ID
         const paymentButton = new ButtonBuilder()
-          .setCustomId(`order_payment_${orderId}`)
+          .setCustomId(`order_payment_${order.id}`)
           .setLabel('💵 Mark Payment Received')
           .setStyle(ButtonStyle.Primary);
 
         const doneButton = new ButtonBuilder()
-          .setCustomId(`order_done_${orderId}`)
+          .setCustomId(`order_done_${order.id}`)
           .setLabel('✅ Mark as Done')
           .setStyle(ButtonStyle.Success);
 
         const cancelButton = new ButtonBuilder()
-          .setCustomId(`order_cancel_${orderId}`)
+          .setCustomId(`order_cancel_${order.id}`)
           .setLabel('❌ Cancel Order')
           .setStyle(ButtonStyle.Danger);
 

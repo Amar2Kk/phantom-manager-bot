@@ -47,26 +47,20 @@ export const OrderService = {
   },
 
   /**
-   * Update order status
+   * Update order status by internal ID
    */
-  async updateOrderStatus(
-    orderId: string,
-    guildId: string,
+  async updateOrderStatusById(
+    id: string,
     newStatus: OrderStatus,
     updatedBy: string,
     client?: Client
   ) {
     const order = await db.order.findUnique({
-      where: {
-        orderId_guildId: {
-          orderId,
-          guildId,
-        },
-      },
+      where: { id },
     });
 
     if (!order) {
-      throw new Error(`Order "${orderId}" not found!`);
+      throw new Error(`Order not found!`);
     }
 
     const oldStatus = order.status;
@@ -135,12 +129,7 @@ export const OrderService = {
     }
 
     const updatedOrder = await db.order.update({
-      where: {
-        orderId_guildId: {
-          orderId,
-          guildId,
-        },
-      },
+      where: { id },
       data: updateData,
     });
 
@@ -148,42 +137,31 @@ export const OrderService = {
     if (client) {
       // Import dynamically to avoid circular dependency
       const { LeaderboardService } = await import('./leaderboard-service.js');
-      await LeaderboardService.updateLeaderboard(client, guildId);
+      await LeaderboardService.updateLeaderboard(client, order.guildId);
     } else {
-      logger.warn(`Client not provided to updateOrderStatus, skipping leaderboard update for guild ${guildId}`);
+      logger.warn(`Client not provided to updateOrderStatusById, skipping leaderboard update for guild ${order.guildId}`);
     }
 
     return updatedOrder;
   },
 
   /**
-   * Toggle payment received status
+   * Toggle payment received status by internal ID
    */
-  async togglePaymentReceived(
-    orderId: string,
-    guildId: string,
+  async togglePaymentReceivedById(
+    id: string,
     updatedBy: string
   ) {
     const order = await db.order.findUnique({
-      where: {
-        orderId_guildId: {
-          orderId,
-          guildId,
-        },
-      },
+      where: { id },
     });
 
     if (!order) {
-      throw new Error(`Order "${orderId}" not found!`);
+      throw new Error(`Order not found!`);
     }
 
     return await db.order.update({
-      where: {
-        orderId_guildId: {
-          orderId,
-          guildId,
-        },
-      },
+      where: { id },
       data: {
         paymentReceived: !order.paymentReceived,
       },
@@ -191,7 +169,17 @@ export const OrderService = {
   },
 
   /**
-   * Get order by ID (only non-archived)
+   * Get order by internal database ID
+   */
+  async getOrderById(id: string) {
+    return await db.order.findUnique({
+      where: { id },
+    });
+  },
+
+  /**
+   * Get order by custom orderId (only non-archived)
+   * Returns the most recent order if multiple exist
    */
   async getOrder(orderId: string, guildId: string) {
     return await db.order.findFirst({
@@ -199,6 +187,9 @@ export const OrderService = {
         orderId,
         guildId,
         archived: false,
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
   },
