@@ -91,13 +91,11 @@ async function handleOrderStatusUpdate(
   const orderId = interaction.customId.split('_').slice(2).join('_');
   
   try {
-    await interaction.deferUpdate();
-
     // Get current order
     const order = await OrderService.getOrder(orderId, interaction.guildId);
 
     if (!order) {
-      await interaction.followUp({
+      await interaction.reply({
         content: `❌ Order "${orderId}" not found!`,
         flags: ['Ephemeral'],
       });
@@ -108,12 +106,64 @@ async function handleOrderStatusUpdate(
 
     // Don't update if already in this status
     if (oldStatus === newStatus) {
-      await interaction.followUp({
+      await interaction.reply({
         content: `ℹ️ Order is already marked as ${statusMap[newStatus].label}`,
         flags: ['Ephemeral'],
       });
       return;
     }
+
+    // If order is being canceled, delete the message immediately
+    if (newStatus === OrderStatus.CANCELED) {
+      // Update order status first (pass client for leaderboard update)
+      await OrderService.updateOrderStatus(
+        orderId,
+        interaction.guildId,
+        newStatus,
+        interaction.user.id,
+        interaction.client
+      );
+
+      // Log the status update
+      logger.info(
+        `Order ${orderId} status updated from ${oldStatus} to ${newStatus} by ${interaction.user.tag}`
+      );
+
+      // Log to log channel with credit change info
+      let creditChange;
+      if (oldStatus === OrderStatus.DONE) {
+        creditChange = { userId: order.assignedUserId, amount: order.price, type: 'deducted' as const };
+      }
+
+      await LogService.logOrderStatusUpdate(
+        interaction.client,
+        interaction.guildId,
+        orderId,
+        oldStatus,
+        newStatus,
+        interaction.user.id,
+        creditChange
+      );
+
+      // Delete the message
+      try {
+        await interaction.message.delete();
+        logger.info(`Deleted canceled order message for ${orderId}`);
+      } catch (error) {
+        logger.error('Error deleting order message:', error);
+      }
+
+      // Send confirmation
+      await interaction.reply({
+        content: `✅ Order \`${orderId}\` has been canceled and removed.`,
+        flags: ['Ephemeral'],
+      });
+
+      return;
+    }
+
+    // For non-canceled orders, defer the update
+    await interaction.deferUpdate();
 
     // Update order status (pass client for leaderboard update)
     const updatedOrder = await OrderService.updateOrderStatus(
@@ -124,24 +174,8 @@ async function handleOrderStatusUpdate(
       interaction.client
     );
 
-    // If order is canceled, delete the message
-    if (newStatus === OrderStatus.CANCELED) {
-      try {
-        await interaction.message.delete();
-        logger.info(`Deleted canceled order message for ${orderId}`);
-        
-        // Send a follow-up message
-        await interaction.followUp({
-          content: `✅ Order \`${orderId}\` has been canceled and removed.`,
-          flags: ['Ephemeral'],
-        });
-      } catch (error) {
-        logger.error('Error deleting order message:', error);
-      }
-    } else {
-      // Update the embed for non-canceled orders
-      await updateOrderEmbed(interaction, updatedOrder, oldStatus);
-    }
+    // Update the embed for non-canceled orders
+    await updateOrderEmbed(interaction, updatedOrder, oldStatus);
 
     logger.info(
       `Order ${orderId} status updated from ${oldStatus} to ${newStatus} by ${interaction.user.tag}`
