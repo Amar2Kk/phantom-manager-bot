@@ -33,37 +33,38 @@ async function fixConstraint() {
       // Drop the unique constraint
       await pool.query(`ALTER TABLE "orders" DROP CONSTRAINT "orders_orderId_guildId_key";`);
       console.log('✅ Unique constraint removed');
-      
-      // Create regular index
-      const indexCheck = await pool.query(`
-        SELECT indexname 
-        FROM pg_indexes 
-        WHERE tablename = 'orders' 
-          AND indexname = 'orders_orderId_guildId_idx';
-      `);
-      
-      if (indexCheck.rows.length === 0) {
-        await pool.query(`CREATE INDEX "orders_orderId_guildId_idx" ON "orders"("orderId", "guildId");`);
-        console.log('✅ Regular index created');
-      } else {
-        console.log('✅ Regular index already exists');
-      }
     } else {
       console.log('✅ Constraint already removed or does not exist');
-      
-      // Check for the index
-      const indexCheck = await pool.query(`
-        SELECT indexname 
-        FROM pg_indexes 
-        WHERE tablename = 'orders' 
-          AND indexname = 'orders_orderId_guildId_idx';
-      `);
-      
-      if (indexCheck.rows.length === 0) {
-        console.log('📝 Creating regular index...');
-        await pool.query(`CREATE INDEX "orders_orderId_guildId_idx" ON "orders"("orderId", "guildId");`);
-        console.log('✅ Regular index created');
-      }
+    }
+    
+    // Check for the UNIQUE INDEX (separate from constraint)
+    const uniqueIndexCheck = await pool.query(`
+      SELECT indexname 
+      FROM pg_indexes 
+      WHERE tablename = 'orders' 
+        AND indexname = 'orders_orderId_guildId_key';
+    `);
+    
+    if (uniqueIndexCheck.rows.length > 0) {
+      console.log('⚠️  Found unique INDEX, dropping it...');
+      await pool.query(`DROP INDEX IF EXISTS "orders_orderId_guildId_key";`);
+      console.log('✅ Unique index dropped');
+    }
+    
+    // Check for the regular index
+    const indexCheck = await pool.query(`
+      SELECT indexname 
+      FROM pg_indexes 
+      WHERE tablename = 'orders' 
+        AND indexname = 'orders_orderId_guildId_idx';
+    `);
+    
+    if (indexCheck.rows.length === 0) {
+      console.log('📝 Creating regular (non-unique) index...');
+      await pool.query(`CREATE INDEX "orders_orderId_guildId_idx" ON "orders"("orderId", "guildId");`);
+      console.log('✅ Regular index created');
+    } else {
+      console.log('✅ Regular index already exists');
     }
     
     // List all indexes on the orders table
