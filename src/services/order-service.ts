@@ -15,19 +15,6 @@ export const OrderService = {
     createdBy: string;
     notes?: string;
   }) {
-    // Check if order ID already exists in this guild (excluding archived)
-    const existing = await db.order.findFirst({
-      where: {
-        orderId: data.orderId,
-        guildId: data.guildId,
-        archived: false,
-      },
-    });
-
-    if (existing) {
-      throw new Error(`Order ID "${data.orderId}" already exists in this server!`);
-    }
-
     // Ensure user credit record exists
     await db.userCredit.upsert({
       where: {
