@@ -30,7 +30,7 @@ export const modalSubmitEvent: BotEvent<Events.InteractionCreate> = {
       if (!interaction.guildId) {
         await interaction.reply({ 
           content: 'This can only be used in a server!', 
-          ephemeral: true 
+          flags: ['Ephemeral']
         });
         return;
       }
@@ -47,7 +47,7 @@ export const modalSubmitEvent: BotEvent<Events.InteractionCreate> = {
         if (isNaN(price) || price <= 0) {
           await interaction.reply({
             content: '❌ Invalid price! Please enter a valid number.',
-            ephemeral: true,
+            flags: ['Ephemeral']
           });
           return;
         }
@@ -119,7 +119,7 @@ export const modalSubmitEvent: BotEvent<Events.InteractionCreate> = {
         logger.error('Error creating order:', error);
         await interaction.reply({
           content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to create order'}`,
-          ephemeral: true,
+          flags: ['Ephemeral']
         });
       }
     }

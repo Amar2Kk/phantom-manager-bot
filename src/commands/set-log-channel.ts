@@ -20,7 +20,7 @@ export const setLogChannelCommand: Command = {
     if (!interaction.guildId) {
       await interaction.reply({
         content: 'This command can only be used in a server!',
-        ephemeral: true,
+        flags: ['Ephemeral'],
       });
       return;
     }
@@ -43,12 +43,12 @@ export const setLogChannelCommand: Command = {
                  `• Order creation and status updates\n` +
                  `• Payment status changes\n` +
                  `• Credit resets`,
-        ephemeral: true,
+        flags: ['Ephemeral'],
       });
     } catch (error) {
       await interaction.reply({
         content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to set log channel'}`,
-        ephemeral: true,
+        flags: ['Ephemeral'],
       });
     }
   },

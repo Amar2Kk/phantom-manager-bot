@@ -21,7 +21,7 @@ export const resetOrdersCommand: Command = {
     if (!interaction.guildId) {
       await interaction.reply({ 
         content: 'This command can only be used in a server!', 
-        ephemeral: true 
+        flags: ['Ephemeral'] 
       });
       return;
     }
@@ -38,7 +38,7 @@ export const resetOrdersCommand: Command = {
       if (orderCount === 0) {
         await interaction.reply({
           content: '✅ There are no active orders to reset!',
-          ephemeral: true,
+          flags: ['Ephemeral'],
         });
         return;
       }
@@ -88,7 +88,7 @@ export const resetOrdersCommand: Command = {
       const response = await interaction.reply({
         embeds: [confirmEmbed],
         components: [row],
-        ephemeral: true,
+        flags: ['Ephemeral'],
       });
 
       // Wait for button interaction
@@ -101,7 +101,7 @@ export const resetOrdersCommand: Command = {
         if (buttonInteraction.user.id !== interaction.user.id) {
           await buttonInteraction.reply({
             content: '❌ Only the command user can confirm this action!',
-            ephemeral: true,
+            flags: ['Ephemeral'],
           });
           return;
         }
@@ -192,7 +192,7 @@ export const resetOrdersCommand: Command = {
     } catch (error) {
       await interaction.reply({
         content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to reset orders'}`,
-        ephemeral: true,
+        flags: ['Ephemeral'],
       });
     }
   },

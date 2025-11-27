@@ -19,7 +19,7 @@ export const setLeaderboardCommand: Command = {
     if (!interaction.guildId) {
       await interaction.reply({ 
         content: 'This command can only be used in a server!', 
-        ephemeral: true 
+        flags: ['Ephemeral'] 
       });
       return;
     }
@@ -28,7 +28,7 @@ export const setLeaderboardCommand: Command = {
     if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
       await interaction.reply({
         content: '❌ You need Administrator permissions to use this command!',
-        ephemeral: true,
+        flags: ['Ephemeral'],
       });
       return;
     }
@@ -43,13 +43,13 @@ export const setLeaderboardCommand: Command = {
 
       await interaction.reply({
         content: `✅ Live credits leaderboard set to <#${channel.id}>!\n\nThe leaderboard will update automatically whenever credits change.`,
-        ephemeral: true,
+        flags: ['Ephemeral'],
       });
 
     } catch (error) {
       await interaction.reply({
         content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to set leaderboard channel'}`,
-        ephemeral: true,
+        flags: ['Ephemeral'],
       });
     }
   },

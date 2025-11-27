@@ -11,7 +11,7 @@ export const totalCommand: Command = {
     if (!interaction.guildId) {
       await interaction.reply({ 
         content: 'This command can only be used in a server!', 
-        ephemeral: true 
+        flags: ['Ephemeral'] 
       });
       return;
     }
@@ -33,12 +33,12 @@ export const totalCommand: Command = {
         .setFooter({ text: `Use /credits for detailed statistics` })
         .setTimestamp();
 
-      await interaction.reply({ embeds: [embed], ephemeral: true });
+      await interaction.reply({ embeds: [embed], flags: ['Ephemeral'] });
 
     } catch (error) {
       await interaction.reply({
         content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to fetch credits'}`,
-        ephemeral: true,
+        flags: ['Ephemeral'],
       });
     }
   },

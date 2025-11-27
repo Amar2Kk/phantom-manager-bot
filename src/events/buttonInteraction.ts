@@ -47,7 +47,7 @@ async function handlePaymentToggle(interaction: any) {
     if (!order) {
       await interaction.followUp({
         content: `❌ Order "${orderId}" not found!`,
-        ephemeral: true,
+        flags: ['Ephemeral'],
       });
       return;
     }
@@ -79,7 +79,7 @@ async function handlePaymentToggle(interaction: any) {
     logger.error('Error toggling payment status:', error);
     await interaction.followUp({
       content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to update payment status'}`,
-      ephemeral: true,
+      flags: ['Ephemeral'],
     });
   }
 }
@@ -99,7 +99,7 @@ async function handleOrderStatusUpdate(
     if (!order) {
       await interaction.followUp({
         content: `❌ Order "${orderId}" not found!`,
-        ephemeral: true,
+        flags: ['Ephemeral'],
       });
       return;
     }
@@ -110,7 +110,7 @@ async function handleOrderStatusUpdate(
     if (oldStatus === newStatus) {
       await interaction.followUp({
         content: `ℹ️ Order is already marked as ${statusMap[newStatus].label}`,
-        ephemeral: true,
+        flags: ['Ephemeral'],
       });
       return;
     }
@@ -133,7 +133,7 @@ async function handleOrderStatusUpdate(
         // Send a follow-up message
         await interaction.followUp({
           content: `✅ Order \`${orderId}\` has been canceled and removed.`,
-          ephemeral: true,
+          flags: ['Ephemeral'],
         });
       } catch (error) {
         logger.error('Error deleting order message:', error);
@@ -171,7 +171,7 @@ async function handleOrderStatusUpdate(
     logger.error('Error updating order status:', error);
     await interaction.followUp({
       content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to update order'}`,
-      ephemeral: true,
+      flags: ['Ephemeral'],
     });
   }
 }

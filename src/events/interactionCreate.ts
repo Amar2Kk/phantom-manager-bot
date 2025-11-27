@@ -27,10 +27,10 @@ export const interactionCreateEvent: BotEvent<Events.InteractionCreate> = {
         
         // Check if interaction has been responded to in any way
         if (interaction.replied || interaction.deferred) {
-          await interaction.followUp({ content: errorMessage, ephemeral: true });
+          await interaction.followUp({ content: errorMessage, flags: ['Ephemeral'] });
         } else {
           // Modal interactions don't need a reply
-          await interaction.reply({ content: errorMessage, ephemeral: true });
+          await interaction.reply({ content: errorMessage, flags: ['Ephemeral'] });
         }
       } catch (replyError) {
         // Interaction already handled or expired, just log it

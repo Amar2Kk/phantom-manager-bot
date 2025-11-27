@@ -33,7 +33,7 @@ export const archivedOrdersCommand: Command = {
     if (!interaction.guildId) {
       await interaction.reply({ 
         content: 'This command can only be used in a server!', 
-        ephemeral: true 
+        flags: ['Ephemeral'] 
       });
       return;
     }

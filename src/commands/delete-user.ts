@@ -27,7 +27,7 @@ export const deleteUserCommand: Command = {
     if (!interaction.guildId) {
       await interaction.reply({ 
         content: 'This command can only be used in a server!', 
-        ephemeral: true 
+        flags: ['Ephemeral'] 
       });
       return;
     }
@@ -67,7 +67,7 @@ export const deleteUserCommand: Command = {
       if (!userCredits && totalOrders === 0) {
         await interaction.reply({
           content: `✅ User ${targetUser.username} has no data in this server.`,
-          ephemeral: true,
+          flags: ['Ephemeral'],
         });
         return;
       }
@@ -110,7 +110,7 @@ export const deleteUserCommand: Command = {
       const response = await interaction.reply({
         embeds: [confirmEmbed],
         components: [row],
-        ephemeral: true,
+        flags: ['Ephemeral'],
       });
 
       // Wait for button interaction
@@ -123,7 +123,7 @@ export const deleteUserCommand: Command = {
         if (buttonInteraction.user.id !== interaction.user.id) {
           await buttonInteraction.reply({
             content: '❌ Only the command user can confirm this action!',
-            ephemeral: true,
+            flags: ['Ephemeral'],
           });
           return;
         }
@@ -209,7 +209,7 @@ export const deleteUserCommand: Command = {
     } catch (error) {
       await interaction.reply({
         content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to delete user data'}`,
-        ephemeral: true,
+        flags: ['Ephemeral'],
       });
     }
   },

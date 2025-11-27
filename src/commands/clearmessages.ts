@@ -20,7 +20,7 @@ export const clearMessagesCommand: Command = {
     if (!interaction.channel || !interaction.channel.isTextBased()) {
       await interaction.reply({
         content: '❌ This command can only be used in text channels!',
-        ephemeral: true,
+        flags: ['Ephemeral'],
       });
       return;
     }
@@ -28,7 +28,7 @@ export const clearMessagesCommand: Command = {
     const amount = interaction.options.getInteger('amount') || 100;
 
     try {
-      await interaction.deferReply({ ephemeral: true });
+      await interaction.deferReply({ flags: ['Ephemeral'] });
 
       const channel = interaction.channel as TextChannel;
       
@@ -68,7 +68,7 @@ export const clearMessagesCommand: Command = {
       } else {
         await interaction.reply({
           content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to delete messages'}`,
-          ephemeral: true,
+          flags: ['Ephemeral'],
         });
       }
     }

@@ -159,7 +159,7 @@ export const OrderService = {
     // Update leaderboard if client is provided
     if (client) {
       // Import dynamically to avoid circular dependency
-      const { LeaderboardService } = await import('./leaderboard-service');
+      const { LeaderboardService } = await import('./leaderboard-service.js');
       await LeaderboardService.updateLeaderboard(client, guildId);
     }
 

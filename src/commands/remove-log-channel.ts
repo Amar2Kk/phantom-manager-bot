@@ -12,7 +12,7 @@ export const removeLogChannelCommand: Command = {
     if (!interaction.guildId) {
       await interaction.reply({
         content: 'This command can only be used in a server!',
-        ephemeral: true,
+        flags: ['Ephemeral'],
       });
       return;
     }
@@ -26,7 +26,7 @@ export const removeLogChannelCommand: Command = {
       if (!guild?.logChannelId) {
         await interaction.reply({
           content: '❌ No log channel is currently configured!',
-          ephemeral: true,
+          flags: ['Ephemeral'],
         });
         return;
       }
@@ -39,12 +39,12 @@ export const removeLogChannelCommand: Command = {
 
       await interaction.reply({
         content: '✅ Log channel removed! Bot actions will no longer be logged.',
-        ephemeral: true,
+        flags: ['Ephemeral'],
       });
     } catch (error) {
       await interaction.reply({
         content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to remove log channel'}`,
-        ephemeral: true,
+        flags: ['Ephemeral'],
       });
     }
   },

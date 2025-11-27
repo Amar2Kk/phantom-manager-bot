@@ -36,7 +36,7 @@ export const orderStatusCommand: Command = {
     if (!interaction.guildId) {
       await interaction.reply({ 
         content: 'This command can only be used in a server!', 
-        ephemeral: true 
+        flags: ['Ephemeral'] 
       });
       return;
     }
@@ -51,7 +51,7 @@ export const orderStatusCommand: Command = {
       if (!order) {
         await interaction.reply({
           content: `❌ Order "${orderId}" not found!`,
-          ephemeral: true,
+          flags: ['Ephemeral'],
         });
         return;
       }
@@ -139,7 +139,7 @@ export const orderStatusCommand: Command = {
     } catch (error) {
       await interaction.reply({
         content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to update order'}`,
-        ephemeral: true,
+        flags: ['Ephemeral'],
       });
     }
   },
