@@ -36,13 +36,18 @@ export const buttonInteractionEvent: BotEvent<Events.InteractionCreate> = {
 };
 
 async function handlePaymentToggle(interaction: any) {
-  const internalId = interaction.customId.split('_').slice(2).join('_');
+  const idFromButton = interaction.customId.split('_').slice(2).join('_');
   
   try {
     await interaction.deferUpdate();
 
-    // Get current order by internal ID
-    const order = await OrderService.getOrderById(internalId);
+    // Try to get order by internal ID first (new format)
+    let order = await OrderService.getOrderById(idFromButton);
+
+    // If not found, try to get by custom orderId (old format for backward compatibility)
+    if (!order && interaction.guildId) {
+      order = await OrderService.getOrder(idFromButton, interaction.guildId);
+    }
 
     if (!order) {
       await interaction.followUp({
@@ -51,6 +56,9 @@ async function handlePaymentToggle(interaction: any) {
       });
       return;
     }
+
+    // Use the internal ID for all operations
+    const internalId = order.id;
 
     // Toggle payment status
     const updatedOrder = await OrderService.togglePaymentReceivedById(
@@ -87,11 +95,16 @@ async function handleOrderStatusUpdate(
   interaction: any,
   newStatus: OrderStatus
 ) {
-  const internalId = interaction.customId.split('_').slice(2).join('_');
+  const idFromButton = interaction.customId.split('_').slice(2).join('_');
   
   try {
-    // Get current order by internal ID
-    const order = await OrderService.getOrderById(internalId);
+    // Try to get order by internal ID first (new format)
+    let order = await OrderService.getOrderById(idFromButton);
+
+    // If not found, try to get by custom orderId (old format for backward compatibility)
+    if (!order && interaction.guildId) {
+      order = await OrderService.getOrder(idFromButton, interaction.guildId);
+    }
 
     if (!order) {
       await interaction.reply({
@@ -101,6 +114,8 @@ async function handleOrderStatusUpdate(
       return;
     }
 
+    // Use the internal ID for all operations
+    const internalId = order.id;
     const oldStatus = order.status;
 
     // Don't update if already in this status
