@@ -1,4 +1,5 @@
 import { Client, TextChannel, EmbedBuilder } from 'discord.js';
+import { OrderStatus } from '@prisma/client';
 import { db } from '../utils/database.js';
 import { logger } from '../utils/logger.js';
 
@@ -44,13 +45,12 @@ export const LeaderboardService = {
           try {
             const user = await client.users.fetch(userCredit.userId);
             
-            // Calculate pending credits from DONE orders that haven't been paid
+            // Calculate pending credits from currently pending orders
             const pendingCredits = await db.order.aggregate({
               where: {
                 assignedUserId: userCredit.userId,
                 guildId,
-                status: 'DONE',
-                paymentReceived: false,
+                status: OrderStatus.PENDING,
                 archived: false,
               },
               _sum: {
