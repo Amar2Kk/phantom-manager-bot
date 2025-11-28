@@ -160,10 +160,48 @@ export const OrderService = {
       throw new Error(`Order not found!`);
     }
 
+    const newPaymentStatus = !order.paymentReceived;
+
+    // Handle credit changes based on payment status
+    // Only affect credits if the order is DONE
+    if (order.status === OrderStatus.DONE) {
+      if (newPaymentStatus) {
+        // Payment received → Deduct credits (user got their money)
+        await db.userCredit.update({
+          where: {
+            userId_guildId: {
+              userId: order.assignedUserId,
+              guildId: order.guildId,
+            },
+          },
+          data: {
+            credits: {
+              decrement: order.price,
+            },
+          },
+        });
+      } else {
+        // Payment unmarked → Add credits back (payment was reversed)
+        await db.userCredit.update({
+          where: {
+            userId_guildId: {
+              userId: order.assignedUserId,
+              guildId: order.guildId,
+            },
+          },
+          data: {
+            credits: {
+              increment: order.price,
+            },
+          },
+        });
+      }
+    }
+
     return await db.order.update({
       where: { id },
       data: {
-        paymentReceived: !order.paymentReceived,
+        paymentReceived: newPaymentStatus,
       },
     });
   },

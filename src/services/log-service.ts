@@ -102,7 +102,8 @@ export const LogService = {
     guildId: string,
     orderId: string,
     paymentReceived: boolean,
-    updatedBy: string
+    updatedBy: string,
+    creditChange?: { userId: string; amount: number; type: 'added' | 'deducted' }
   ) {
     const embed = new EmbedBuilder()
       .setColor(paymentReceived ? 0x00BFFF : 0xFFA500)
@@ -113,6 +114,14 @@ export const LogService = {
         { name: '👤 Updated By', value: `<@${updatedBy}>`, inline: true }
       )
       .setTimestamp();
+
+    if (creditChange) {
+      const sign = creditChange.type === 'added' ? '+' : '-';
+      embed.addFields({
+        name: '💳 Credit Change',
+        value: `${sign}$${creditChange.amount.toFixed(2)} for <@${creditChange.userId}>`,
+      });
+    }
 
     await this.sendLog(client, guildId, embed);
   },

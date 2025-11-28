@@ -60,6 +60,9 @@ async function handlePaymentToggle(interaction: any) {
     // Use the internal ID for all operations
     const internalId = order.id;
 
+    // Get old payment status for credit change detection
+    const oldPaymentStatus = order.paymentReceived;
+
     // Toggle payment status
     const updatedOrder = await OrderService.togglePaymentReceivedById(
       internalId,
@@ -67,11 +70,23 @@ async function handlePaymentToggle(interaction: any) {
     );
 
     // Update the embed
-    await updateOrderEmbed(interaction, updatedOrder);
+    await updateOrderEmbed(interaction, updatedOrder, undefined, oldPaymentStatus);
 
     logger.info(
       `Order ${updatedOrder.orderId} (ID: ${internalId}) payment status toggled to ${updatedOrder.paymentReceived} by ${interaction.user.tag}`
     );
+
+    // Determine credit change for logging
+    let creditChange;
+    if (order.status === OrderStatus.DONE) {
+      if (updatedOrder.paymentReceived && !oldPaymentStatus) {
+        // Payment marked as received → credits deducted
+        creditChange = { userId: order.assignedUserId, amount: order.price, type: 'deducted' as const };
+      } else if (!updatedOrder.paymentReceived && oldPaymentStatus) {
+        // Payment unmarked → credits added back
+        creditChange = { userId: order.assignedUserId, amount: order.price, type: 'added' as const };
+      }
+    }
 
     // Log to log channel
     await LogService.logPaymentToggle(
@@ -79,8 +94,15 @@ async function handlePaymentToggle(interaction: any) {
       interaction.guildId,
       updatedOrder.orderId,
       updatedOrder.paymentReceived,
-      interaction.user.id
+      interaction.user.id,
+      creditChange
     );
+
+    // Update leaderboard if credits changed
+    if (creditChange) {
+      const { LeaderboardService } = await import('../services/leaderboard-service.js');
+      await LeaderboardService.updateLeaderboard(interaction.client, interaction.guildId);
+    }
 
   } catch (error) {
     logger.error('Error toggling payment status:', error);
@@ -225,7 +247,8 @@ async function handleOrderStatusUpdate(
 async function updateOrderEmbed(
   interaction: any,
   order: any,
-  oldStatus?: OrderStatus
+  oldStatus?: OrderStatus,
+  oldPaymentStatus?: boolean
 ) {
   const statusInfo = statusMap[order.status as OrderStatus];
   
@@ -249,7 +272,7 @@ async function updateOrderEmbed(
     )
     .setTimestamp();
 
-  // Add credit notification if status changed
+  // Add credit notification if status or payment changed
   if (oldStatus !== undefined) {
     if (order.status === OrderStatus.DONE && oldStatus !== OrderStatus.DONE) {
       embed.setDescription(`✅ **+$${order.price.toFixed(2)}** added to <@${order.assignedUserId}>'s credits!`);
@@ -265,6 +288,21 @@ async function updateOrderEmbed(
       });
     } else if (oldStatus === OrderStatus.DONE && order.status === OrderStatus.PENDING) {
       embed.setDescription(`⚠️ **-$${order.price.toFixed(2)}** deducted from <@${order.assignedUserId}>'s credits!`);
+      embed.addFields({ 
+        name: '💳 User Credits', 
+        value: `$${userCredits?.credits.toFixed(2) || '0.00'}` 
+      });
+    }
+  } else if (oldPaymentStatus !== undefined && order.status === OrderStatus.DONE) {
+    // Payment status changed on a DONE order
+    if (order.paymentReceived && !oldPaymentStatus) {
+      embed.setDescription(`💵 **-$${order.price.toFixed(2)}** deducted from <@${order.assignedUserId}>'s credits (Payment received)`);
+      embed.addFields({ 
+        name: '💳 User Credits', 
+        value: `$${userCredits?.credits.toFixed(2) || '0.00'}` 
+      });
+    } else if (!order.paymentReceived && oldPaymentStatus) {
+      embed.setDescription(`💵 **+$${order.price.toFixed(2)}** added back to <@${order.assignedUserId}>'s credits (Payment unmarked)`);
       embed.addFields({ 
         name: '💳 User Credits', 
         value: `$${userCredits?.credits.toFixed(2) || '0.00'}` 
