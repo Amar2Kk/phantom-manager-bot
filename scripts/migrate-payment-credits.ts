@@ -1,18 +1,17 @@
-import { PrismaClient, OrderStatus } from '@prisma/client';
+import { OrderStatus } from '@prisma/client';
+import { db } from '../dist/utils/database.js';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const prisma = new PrismaClient();
-
 async function migratePaymentCredits() {
   console.log('🔄 Starting payment credits migration...\n');
 
   try {
     // Find all orders that are DONE and have payment received
-    const ordersWithPayment = await prisma.order.findMany({
+    const ordersWithPayment = await db.order.findMany({
       where: {
         status: OrderStatus.DONE,
         paymentReceived: true,
@@ -59,7 +58,7 @@ async function migratePaymentCredits() {
     for (const [key, adjustment] of creditAdjustments) {
       try {
         // Ensure user credit record exists
-        await prisma.userCredit.upsert({
+        await db.userCredit.upsert({
           where: {
             userId_guildId: {
               userId: adjustment.userId,
@@ -75,7 +74,7 @@ async function migratePaymentCredits() {
         });
 
         // Get current credits
-        const currentCredits = await prisma.userCredit.findUnique({
+        const currentCredits = await db.userCredit.findUnique({
           where: {
             userId_guildId: {
               userId: adjustment.userId,
@@ -85,7 +84,7 @@ async function migratePaymentCredits() {
         });
 
         // Deduct credits for paid orders
-        const updatedCredits = await prisma.userCredit.update({
+        const updatedCredits = await db.userCredit.update({
           where: {
             userId_guildId: {
               userId: adjustment.userId,
@@ -121,8 +120,6 @@ async function migratePaymentCredits() {
   } catch (error) {
     console.error('❌ Migration failed:', error);
     process.exit(1);
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
