@@ -38,19 +38,36 @@ export const LeaderboardService = {
         take: 15,
       });
 
-      // Fetch user data to get usernames
+      // Fetch user data to get usernames and pending credits
       const usersWithNames = await Promise.all(
         topUsers.map(async (userCredit) => {
           try {
             const user = await client.users.fetch(userCredit.userId);
+            
+            // Calculate pending credits from DONE orders that haven't been paid
+            const pendingCredits = await db.order.aggregate({
+              where: {
+                assignedUserId: userCredit.userId,
+                guildId,
+                status: 'DONE',
+                paymentReceived: false,
+                archived: false,
+              },
+              _sum: {
+                price: true,
+              },
+            });
+
             return {
               ...userCredit,
               username: user.username,
+              pendingCredits: pendingCredits._sum.price || 0,
             };
           } catch {
             return {
               ...userCredit,
               username: 'Unknown User',
+              pendingCredits: 0,
             };
           }
         })
@@ -59,33 +76,36 @@ export const LeaderboardService = {
       // Create table
       let table = '';
       if (usersWithNames.length > 0) {
-        // Header - Border has 6 dashes for rank, 22 for user, 14 for credits
+        // Header - Border has 6 for rank, 18 for user, 12 for credits, 12 for pending
         table += '```\n';
-        table += '┌──────┬──────────────────────┬──────────────┐\n';
-        table += '│ Rank │ User                 │      Credits │\n';
-        table += '├──────┼──────────────────────┼──────────────┤\n';
+        table += '┌──────┬──────────────────┬────────────┬────────────┐\n';
+        table += '│ Rank │ User             │    Credits │    Pending │\n';
+        table += '├──────┼──────────────────┼────────────┼────────────┤\n';
 
         // Rows
         usersWithNames.forEach((user, index) => {
           const rank = `#${index + 1}`;
-          const username = user.username.length > 20 
-            ? user.username.substring(0, 17) + '...' 
+          const username = user.username.length > 16 
+            ? user.username.substring(0, 13) + '...' 
             : user.username;
           const credits = `$${user.credits.toFixed(2)}`;
+          const pending = `$${user.pendingCredits.toFixed(2)}`;
           
           // Pad strings to fit columns exactly
           // Rank column: 4 chars
           const rankPad = rank.padEnd(4, ' ');
-          // User column: 20 chars
-          const userPad = username.padEnd(20, ' ');
-          // Credits column: 12 chars (right-aligned)
-          const creditPad = credits.padStart(12, ' ');
+          // User column: 16 chars
+          const userPad = username.padEnd(16, ' ');
+          // Credits column: 10 chars (right-aligned)
+          const creditPad = credits.padStart(10, ' ');
+          // Pending column: 10 chars (right-aligned)
+          const pendingPad = pending.padStart(10, ' ');
           
-          table += `│ ${rankPad} │ ${userPad} │ ${creditPad} │\n`;
+          table += `│ ${rankPad} │ ${userPad} │ ${creditPad} │ ${pendingPad} │\n`;
         });
 
         // Footer
-        table += '└──────┴──────────────────────┴──────────────┘\n';
+        table += '└──────┴──────────────────┴────────────┴────────────┘\n';
         table += '```';
       } else {
         table = '```\nNo users with credits yet\n```';
