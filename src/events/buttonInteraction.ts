@@ -69,9 +69,6 @@ async function handlePaymentToggle(interaction: any) {
       interaction.user.id
     );
 
-    // Update the embed
-    await updateOrderEmbed(interaction, updatedOrder, undefined, oldPaymentStatus);
-
     logger.info(
       `Order ${updatedOrder.orderId} (ID: ${internalId}) payment status toggled to ${updatedOrder.paymentReceived} by ${interaction.user.tag}`
     );
@@ -102,6 +99,25 @@ async function handlePaymentToggle(interaction: any) {
     if (creditChange) {
       const { LeaderboardService } = await import('../services/leaderboard-service.js');
       await LeaderboardService.updateLeaderboard(interaction.client, interaction.guildId);
+    }
+
+    // If order is DONE and payment is received, delete the message
+    if (updatedOrder.status === OrderStatus.DONE && updatedOrder.paymentReceived) {
+      try {
+        await interaction.message.delete();
+        logger.info(`Deleted completed and paid order message for ${updatedOrder.orderId} (ID: ${internalId})`);
+        
+        // Send confirmation
+        await interaction.followUp({
+          content: `✅ Order \`${updatedOrder.orderId}\` is complete and paid. Message removed.`,
+          flags: ['Ephemeral'],
+        });
+      } catch (error) {
+        logger.error('Error deleting order message:', error);
+      }
+    } else {
+      // Update the embed if not deleting
+      await updateOrderEmbed(interaction, updatedOrder, undefined, oldPaymentStatus);
     }
 
   } catch (error) {
@@ -208,9 +224,6 @@ async function handleOrderStatusUpdate(
       interaction.client
     );
 
-    // Update the embed for non-canceled orders
-    await updateOrderEmbed(interaction, updatedOrder, oldStatus);
-
     logger.info(
       `Order ${updatedOrder.orderId} (ID: ${internalId}) status updated from ${oldStatus} to ${newStatus} by ${interaction.user.tag}`
     );
@@ -234,6 +247,25 @@ async function handleOrderStatusUpdate(
       interaction.user.id,
       creditChange
     );
+
+    // If order is now DONE and payment is already received, delete the message
+    if (updatedOrder.status === OrderStatus.DONE && updatedOrder.paymentReceived) {
+      try {
+        await interaction.message.delete();
+        logger.info(`Deleted completed and paid order message for ${updatedOrder.orderId} (ID: ${internalId})`);
+        
+        // Send confirmation
+        await interaction.followUp({
+          content: `✅ Order \`${updatedOrder.orderId}\` is complete and paid. Message removed.`,
+          flags: ['Ephemeral'],
+        });
+      } catch (error) {
+        logger.error('Error deleting order message:', error);
+      }
+    } else {
+      // Update the embed for non-deleted orders
+      await updateOrderEmbed(interaction, updatedOrder, oldStatus);
+    }
 
   } catch (error) {
     logger.error('Error updating order status:', error);
