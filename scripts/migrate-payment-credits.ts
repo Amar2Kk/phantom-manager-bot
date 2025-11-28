@@ -17,9 +17,6 @@ async function migratePaymentCredits() {
         paymentReceived: true,
         archived: false,
       },
-      include: {
-        _count: true,
-      },
     });
 
     console.log(`📊 Found ${ordersWithPayment.length} orders with payment marked as received\n`);
