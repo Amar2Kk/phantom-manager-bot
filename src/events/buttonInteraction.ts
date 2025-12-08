@@ -385,9 +385,24 @@ async function updateOrderEmbed(
 
   const row = new ActionRowBuilder<ButtonBuilder>().addComponents(buttons);
 
-  await interaction.editReply({ 
-    embeds: [embed], 
-    components: [row] 
-  });
+  try {
+    await interaction.editReply({ 
+      embeds: [embed], 
+      components: [row] 
+    });
+  } catch (error: any) {
+    // Discord returns 10008 when the original message was deleted or no longer exists
+    if (error?.code === 10008 || error?.status === 404) {
+      logger.warn(`Order message missing for ${order.orderId}; informing user instead.`);
+      await interaction.followUp({
+        content: 'ℹ️ The original order message no longer exists. Use `/orders` to fetch the latest list.',
+        flags: ['Ephemeral'],
+      });
+      return;
+    }
+
+    // Re-throw unexpected errors so caller can handle them
+    throw error;
+  }
 }
 
