@@ -158,7 +158,7 @@ export const deleteUserCommand: Command = {
           ]);
 
           // Update leaderboard
-          const { LeaderboardService } = await import('../services/leaderboard-service');
+          const { LeaderboardService } = await import('../services/leaderboard-service.js');
           await LeaderboardService.updateLeaderboard(interaction.client, interaction.guildId!);
 
           const successEmbed = new EmbedBuilder()
