@@ -24,7 +24,7 @@ export const archivedOrdersCommand: Command = {
         .setName('limit')
         .setDescription('Number of orders to show (default: 10)')
         .setMinValue(1)
-        .setMaxValue(25)
+        .setMaxValue(200)
         .setRequired(false)
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator) as SlashCommandBuilder,
