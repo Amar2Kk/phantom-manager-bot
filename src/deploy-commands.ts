@@ -22,6 +22,7 @@ import { resetUserOrdersCommand } from './commands/reset-user-orders.js';
 import { archivedOrdersCommand } from './commands/archived-orders.js';
 import { clearMessagesCommand } from './commands/clearmessages.js';
 import { deleteUserCommand } from './commands/delete-user.js';
+import { deleteOrderCommand } from './commands/delete-order.js';
 
 async function deployCommands() {
   const commands = [
@@ -43,7 +44,8 @@ async function deployCommands() {
     resetUserOrdersCommand,
     archivedOrdersCommand,
     clearMessagesCommand,
-    deleteUserCommand
+    deleteUserCommand,
+    deleteOrderCommand
   ].map(command => command.data.toJSON());
 
   const rest = new REST().setToken(botConfig.token);

@@ -24,6 +24,7 @@ import { resetUserOrdersCommand } from './commands/reset-user-orders.js';
 import { archivedOrdersCommand } from './commands/archived-orders.js';
 import { clearMessagesCommand } from './commands/clearmessages.js';
 import { deleteUserCommand } from './commands/delete-user.js';
+import { deleteOrderCommand } from './commands/delete-order.js';
 
 // Import events
 import { readyEvent } from './events/ready.js';
@@ -71,7 +72,8 @@ export function createBot(): Client {
     resetUserOrdersCommand,
     archivedOrdersCommand,
     clearMessagesCommand,
-    deleteUserCommand
+    deleteUserCommand,
+    deleteOrderCommand
   ];
   
   for (const command of commands) {
