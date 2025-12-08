@@ -117,10 +117,24 @@ export const modalSubmitEvent: BotEvent<Events.InteractionCreate> = {
 
       } catch (error) {
         logger.error('Error creating order:', error);
-        await interaction.reply({
-          content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to create order'}`,
-          flags: ['Ephemeral']
-        });
+        
+        try {
+          // Check if we already replied to avoid double-reply errors
+          if (interaction.replied || interaction.deferred) {
+            await interaction.followUp({
+              content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to create order'}`,
+              flags: ['Ephemeral']
+            });
+          } else {
+            await interaction.reply({
+              content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to create order'}`,
+              flags: ['Ephemeral']
+            });
+          }
+        } catch (replyError) {
+          // If we can't send the error message, just log it
+          logger.error('Could not send error message to user:', replyError);
+        }
       }
     }
   },

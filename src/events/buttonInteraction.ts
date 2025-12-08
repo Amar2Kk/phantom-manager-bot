@@ -122,10 +122,15 @@ async function handlePaymentToggle(interaction: any) {
 
   } catch (error) {
     logger.error('Error toggling payment status:', error);
-    await interaction.followUp({
-      content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to update payment status'}`,
-      flags: ['Ephemeral'],
-    });
+    
+    try {
+      await interaction.followUp({
+        content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to update payment status'}`,
+        flags: ['Ephemeral'],
+      });
+    } catch (replyError) {
+      logger.error('Could not send error message to user:', replyError);
+    }
   }
 }
 
@@ -269,10 +274,23 @@ async function handleOrderStatusUpdate(
 
   } catch (error) {
     logger.error('Error updating order status:', error);
-    await interaction.followUp({
-      content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to update order'}`,
-      flags: ['Ephemeral'],
-    });
+    
+    try {
+      // Check if interaction was deferred or replied to
+      if (interaction.deferred || interaction.replied) {
+        await interaction.followUp({
+          content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to update order'}`,
+          flags: ['Ephemeral'],
+        });
+      } else {
+        await interaction.reply({
+          content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to update order'}`,
+          flags: ['Ephemeral'],
+        });
+      }
+    } catch (replyError) {
+      logger.error('Could not send error message to user:', replyError);
+    }
   }
 }
 
